@@ -14,29 +14,41 @@ s4() + '-' + s4() + s4() + s4()
 }
 
 
-function createHash(string,cb){
+function createHash(string){
+  return new Promise((resolve, reject) => {
   const saltRounds = 10;
   bcrypt.hash(string, saltRounds, function(err, hash) {
-    cb(err,hash)
+    if(err){
+      reject(err)
+    }
+    resolve(hash)
   })
+});
 }
 
-function compareHash(string1,string2,cb){
-  console.log('bcrypt compare')
-  console.log('atring 1 ='+string1)
-  console.log('atring 2 ='+string2)
-  bcrypt.compare(string1,string2, (err, res)=> {
-    console.log('bcrypt compare')
-    console.log(err)
-    console.log(res)
-    if(res){
-      console.log('password OK, authorised!')
-    } else {
-      console.log('password FAIL, unauthorised!')
-    }
-    console.log('-----')
-    cb(err,res)
-  })
+function compareHash(string1,string2){
+  return new Promise((resolve, reject) => {
+    console.log('Running hash compare using bcrypt')
+    try{
+
+    bcrypt.compare(string1,string2, (err, res)=> {
+      console.log('bcrypt compare')
+      if(res){
+        console.log('compareHash: resolve')
+        resolve(200)
+      } else {
+        console.log('compareHash: reject as not correct hash')
+        reject(400)
+      }
+    })
+  }catch(e){
+    console.log('compareHash: reject for error')
+    resolve(500)
+  }
+
+  });
+
+
 }
 
 function encryptToken (data) {

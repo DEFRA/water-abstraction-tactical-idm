@@ -14,23 +14,48 @@ function sendPasswordResetEmail(params) {
     notifyClient
       .sendEmail(templateId, emailAddress, personalisation)
       .then((response) => {
-        console.log(response)
         resolve (true)
       })
       .catch((err) => {
-        console.error(err)
+        console.log('Error occurred sending notify email')
+        console.log(err.message)
         reject (err)
       });
+  });
 
+}
 
+function sendPasswordLockEmail(params) {
 
+  return new Promise((resolve, reject) => {
+
+    console.log(sendPasswordLockEmail)
+    console.log(params)
+    var NotifyClient = require('notifications-node-client').NotifyClient,
+      notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
+    var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
+    var personalisation = {
+      resetguid: params.resetGuid
+    }
+    var emailAddress = params.email
+    notifyClient
+      .sendEmail(templateId, emailAddress, personalisation)
+      .then((response) => {
+        console.log('notified!')
+        resolve (true)
+      })
+      .catch((err) => {
+        console.log('Error occurred sending notify email')
+        console.log(err.message)
+        reject (err)
+      });
   });
 
 }
 
 
 
-
 module.exports = {
-  sendPasswordResetEmail: sendPasswordResetEmail
+  sendPasswordResetEmail: sendPasswordResetEmail,
+  sendPasswordLockEmail: sendPasswordLockEmail
 };
