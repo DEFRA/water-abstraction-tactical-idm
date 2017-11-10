@@ -141,6 +141,9 @@ function doUserLogin(user_name,password,admin){
       var query = `select * from idm.users where user_name=$1`
     }
     var queryParams = [user_name]
+    console.log(query)
+    console.log(queryParams)
+
     DB.query(query, queryParams)
       .then((UserRes) => {
         //admin login query result
