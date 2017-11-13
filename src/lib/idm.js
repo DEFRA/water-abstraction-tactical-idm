@@ -247,10 +247,10 @@ function increaseLockCount(user){
 function resetLockCount(user){
   return new Promise((resolve, reject) => {
     console.log(user)
-    var query = `update idm.users set bad_logins=0,last_login=now() where user_id=$1`
+    var query = `update idm.users set bad_logins=0 where user_id=$1`
     var queryParams = [user.user_id]
     console.log(query)
-    console.log(queryParams)    
+    console.log(queryParams)
     DB.query(query, queryParams).then((res)=>{
       resolve()
     }).catch(()=>{
