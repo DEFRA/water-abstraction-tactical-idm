@@ -142,9 +142,9 @@ function loginAdminUser(request, reply) {
 function doUserLogin(user_name,password,admin){
   return new Promise((resolve, reject) => {
     if(admin){
-      var query = `select * from idm.users where user_name=$1 and admin=1`
+      var query = `select * from idm.users where lower(user_name)=lower($1) and admin=1`
     } else {
-      var query = `select * from idm.users where user_name=$1`
+      var query = `select * from idm.users where lower(user_name)=lower($1)`
     }
     var queryParams = [user_name]
     console.log(query)
@@ -249,6 +249,8 @@ function resetLockCount(user){
     console.log(user)
     var query = `update idm.users set bad_logins=0,last_login=now() where user_id=$1`
     var queryParams = [user.user_id]
+    console.log(query)
+    console.log(queryParams)    
     DB.query(query, queryParams).then((res)=>{
       resolve()
     }).catch(()=>{
