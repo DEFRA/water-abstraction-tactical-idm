@@ -60,12 +60,18 @@ function changePasswordWithResetLink(request, reply) {
 }
 
 function resetPassword(request, reply) {
+  console.log('start reset password process')
   var resetGuid = Helpers.createGUID()
   //get the user info
   var query = `select * from idm.users where user_name = $1`
   var queryParams = [request.payload.emailAddress]
   DB.query(query, queryParams)
-    .then((res) => {
+    .then((res) =>{
+      console.log(res)
+      if(res.data.length == 0){
+        console.log('email not found... shhh...')
+        return reply()
+      }
       var firstname;
       try {
         firstname = JSON.parse(res.data[0].user_data).firstname
@@ -163,6 +169,8 @@ function doUserLogin(user_name,password,admin){
             console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(()=>{
               reject('Incorrect hash')
+            }).catch(()=>{
+              reject('Incorrect hash & notify email failed')
             })
           });
         } else {
@@ -188,11 +196,18 @@ function increaseLockCount(user){
     if(loginCount ==10){
       console.log('set login count to '+loginCount)
       var resetGuid=Helpers.createGUID()
+
+
+
       Notify.sendPasswordLockEmail({
         email: user.user_name,
         resetGuid: resetGuid
       }).then((res) => {
-        console.log(res)
+        console.log('sent email with notify')
+      }).catch((res) => {
+        console.log('could not send email with notify')
+      }).then(()=>{
+        console.log("FINALLY!")
         var queryParams = [user.user_id,loginCount,resetGuid]
         var query = `update idm.users set password='VOID',reset_guid=$3,bad_logins=$2 where user_id=$1`
           DB.query(query, queryParams).then((res)=>{
@@ -202,10 +217,7 @@ function increaseLockCount(user){
             console.log(err)
             reject()
           })
-      }).catch((res) => {
-        console.log('could not send email with notify')
-        return reply(res)
-      })
+      });
 
 
       //notify!
