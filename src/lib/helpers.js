@@ -28,21 +28,19 @@ function createHash(string){
 
 function compareHash(string1,string2){
   return new Promise((resolve, reject) => {
-    console.log('Running hash compare using bcrypt')
     try{
 
     bcrypt.compare(string1,string2, (err, res)=> {
-      console.log('bcrypt compare')
       if(res){
-        console.log('compareHash: resolve')
+        //console.log('compareHash: resolve')
         resolve(200)
       } else {
-        console.log('compareHash: reject as not correct hash')
+        //console.log('compareHash: reject as not correct hash')
         reject(400)
       }
     })
   }catch(e){
-    console.log('compareHash: reject for error')
+    //console.log('compareHash: reject for error')
     resolve(500)
   }
 

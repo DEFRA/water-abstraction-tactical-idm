@@ -31,7 +31,7 @@ function createUser(request, reply) {
 
 function updatePassword(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `update idm.users set password = $1, reset_guid = NULL where user_name = $2`
+    var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0 where user_name = $2`
     var queryParams = [hashedPW, request.payload.username]
     DB.query(query, queryParams)
       .then((res) => {
@@ -46,7 +46,7 @@ function updatePassword(request, reply) {
 
 function changePasswordWithResetLink(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `update idm.users set password = $1, reset_guid = NULL, reset_required = NULL where reset_guid = $2`
+    var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0, reset_required = NULL where reset_guid = $2`
     var queryParams = [hashedPW, request.payload.resetGuid]
     DB.query(query, queryParams)
       .then((res) => {
@@ -60,16 +60,14 @@ function changePasswordWithResetLink(request, reply) {
 }
 
 function resetPassword(request, reply) {
-  console.log('start reset password process')
   var resetGuid = Helpers.createGUID()
   //get the user info
   var query = `select * from idm.users where user_name = $1`
   var queryParams = [request.payload.emailAddress]
   DB.query(query, queryParams)
     .then((res) =>{
-      console.log(res)
       if(res.data.length == 0){
-        console.log('email not found... shhh...')
+        //console.log('email not found... shhh...')
         return reply()
       }
       var firstname;
@@ -89,7 +87,7 @@ function resetPassword(request, reply) {
           }).then((res) => {
             return reply(res)
           }).catch((res) => {
-            console.log('could not send email with notify')
+            //console.log('could not send email with notify')
             return reply(res)
           })
         })
@@ -121,7 +119,6 @@ function loginUser(request, reply) {
 
 
   doUserLogin (request.payload.user_name,request.payload.password,0).then((result)=>{
-    console.log(result)
     return reply(result)
   }).catch(()=>{
     return loginError(request, reply)
@@ -132,7 +129,6 @@ function loginUser(request, reply) {
 function loginAdminUser(request, reply) {
   console.log(`Received admin login user request for ${request.payload.user_name}`)
   doUserLogin (request.payload.user_name,request.payload.password,0).then((result)=>{
-    console.log(result)
     return reply(result)
   }).catch(()=>{
     return loginError(request, reply)
@@ -147,8 +143,6 @@ function doUserLogin(user_name,password,admin){
       var query = `select * from idm.users where lower(user_name)=lower($1)`
     }
     var queryParams = [user_name]
-    console.log(query)
-    console.log(queryParams)
 
     DB.query(query, queryParams)
       .then((UserRes) => {
@@ -166,7 +160,7 @@ function doUserLogin(user_name,password,admin){
             })
           });
           }).catch(() => {
-            console.log('rejected for incorect hash')
+//            console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(()=>{
               reject('Incorrect hash')
             }).catch(()=>{
@@ -174,7 +168,7 @@ function doUserLogin(user_name,password,admin){
             })
           });
         } else {
-            console.log('rejected for incorect email')
+//            console.log('rejected for incorect email')
           reject('Incorrect login')
         }
       })
@@ -189,12 +183,11 @@ function doUserLogin(user_name,password,admin){
 function increaseLockCount(user){
 
   return new Promise((resolve, reject) => {
-    console.log(user)
     var loginCount=user.bad_logins||1
     loginCount++
 
     if(loginCount ==10){
-      console.log('set login count to '+loginCount)
+//      console.log('set login count to '+loginCount)
       var resetGuid=Helpers.createGUID()
 
 
@@ -203,15 +196,13 @@ function increaseLockCount(user){
         email: user.user_name,
         resetGuid: resetGuid
       }).then((res) => {
-        console.log('sent email with notify')
+//        console.log('sent email with notify')
       }).catch((res) => {
-        console.log('could not send email with notify')
+//        console.log('could not send email with notify')
       }).then(()=>{
-        console.log("FINALLY!")
         var queryParams = [user.user_id,loginCount,resetGuid]
         var query = `update idm.users set password='VOID',reset_guid=$3,bad_logins=$2 where user_id=$1`
           DB.query(query, queryParams).then((res)=>{
-            console.log(res)
             resolve()
           }).catch((err)=>{
             console.log(err)
@@ -222,7 +213,6 @@ function increaseLockCount(user){
 
       //notify!
     } else if (loginCount > 10){
-      console.log('set login count to '+loginCount)
       var queryParams = [user.user_id,loginCount]
       var query = `update idm.users set bad_logins=$2 where user_id=$1`
         DB.query(query, queryParams).then((res)=>{
@@ -246,11 +236,8 @@ function increaseLockCount(user){
 
 function resetLockCount(user){
   return new Promise((resolve, reject) => {
-    console.log(user)
     var query = `update idm.users set bad_logins=0 where user_id=$1`
     var queryParams = [user.user_id]
-    console.log(query)
-    console.log(queryParams)
     DB.query(query, queryParams).then((res)=>{
       resolve()
     }).catch(()=>{
@@ -274,7 +261,6 @@ function getUser(request, reply) {
       } else {
         var user = res.data[0];
         delete user.password
-        console.log('got the user')
         reply(user)
       }
 
@@ -297,7 +283,6 @@ function getUsers(request, reply) {
         }).code(500)
       } else {
         var user = res.data;
-        console.log('got the user')
         reply(user)
       }
 
