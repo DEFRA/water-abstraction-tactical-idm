@@ -195,9 +195,15 @@ function increaseLockCount(user){
       var resetGuid=Helpers.createGUID()
 
 
-
+      var firstname;
+      try {
+        firstname = JSON.parse(user.user_data).firstname
+      } catch (e) {
+        firstname = 'User'
+      }
       Notify.sendPasswordLockEmail({
         email: user.user_name,
+        firstname: firstname,
         resetGuid: resetGuid
       }).then((res) => {
 //        console.log('sent email with notify')

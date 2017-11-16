@@ -35,7 +35,8 @@ function sendPasswordLockEmail(params) {
       notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
     var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
     var personalisation = {
-      resetguid: params.resetGuid
+      resetguid: params.resetGuid,
+      firstname:params.firstname,
     }
     var emailAddress = params.email
     notifyClient
