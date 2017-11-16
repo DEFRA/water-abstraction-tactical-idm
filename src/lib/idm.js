@@ -14,7 +14,7 @@ function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
     values ($1,$2,$3,$4,$5,$6)`
-    var queryParams = [request.payload.username, hashedPW, request.payload.admin, JSON.stringify(request.payload.user_data),Helpers.createGUID(),1]
+    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
         //res.err = null if no error
@@ -143,10 +143,12 @@ function doUserLogin(user_name,password,admin){
       var query = `select * from idm.users where lower(user_name)=lower($1)`
     }
     var queryParams = [user_name]
-
+    console.log(query)
+    console.log(queryParams)
     DB.query(query, queryParams)
       .then((UserRes) => {
         //admin login query result
+        console.log(UserRes)
         if (UserRes.data[0]) {
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
@@ -162,13 +164,15 @@ function doUserLogin(user_name,password,admin){
           }).catch(() => {
 //            console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(()=>{
+              console.log('Incorrect hash')
               reject('Incorrect hash')
             }).catch(()=>{
+              console.log('Incorrect hash & notify email failed')
               reject('Incorrect hash & notify email failed')
             })
           });
         } else {
-//            console.log('rejected for incorect email')
+          console.log('rejected for incorect email')
           reject('Incorrect login')
         }
       })
