@@ -13,7 +13,7 @@ function loginError(request, reply) {
 function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
-    values ($1,$2,$3,$4,$5,$6)`
+    values (lower($1),$2,$3,$4,$5,$6)`
     var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
@@ -31,7 +31,7 @@ function createUser(request, reply) {
 
 function updatePassword(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0 where user_name = $2`
+    var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0 where lower(user_name) = lower($2)`
     var queryParams = [hashedPW, request.payload.username]
     DB.query(query, queryParams)
       .then((res) => {
@@ -62,7 +62,7 @@ function changePasswordWithResetLink(request, reply) {
 function resetPassword(request, reply) {
   var resetGuid = Helpers.createGUID()
   //get the user info
-  var query = `select * from idm.users where user_name = $1`
+  var query = `select * from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.payload.emailAddress]
   DB.query(query, queryParams)
     .then((res) =>{
@@ -76,7 +76,7 @@ function resetPassword(request, reply) {
       } catch (e) {
         firstname = '(User)'
       }
-      var query = `update idm.users set reset_guid = $1 where user_name = $2`
+      var query = `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`
       var queryParams = [resetGuid, request.payload.emailAddress]
       DB.query(query, queryParams)
         .then((res) => {
@@ -99,7 +99,7 @@ function resetPassword(request, reply) {
 }
 
 function getResetPasswordGuid(request, reply) {
-  var query = `select reset_guid from idm.users where user_name = $1`
+  var query = `select reset_guid from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.query.emailAddress]
   DB.query(query, queryParams)
     .then((res) => {

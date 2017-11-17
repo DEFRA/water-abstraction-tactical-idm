@@ -19,7 +19,7 @@ function sendPasswordResetEmail(params) {
       .catch((err) => {
         console.log('Error occurred sending notify email')
         console.log(err.message)
-        reject (err)
+        resolve (true)
       });
   });
 
