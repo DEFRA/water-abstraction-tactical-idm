@@ -117,7 +117,6 @@ function getResetPasswordGuid(request, reply) {
 
 function loginUser(request, reply) {
 
-
   doUserLogin (request.payload.user_name,request.payload.password,0).then((result)=>{
     return reply(result)
   }).catch(()=>{
@@ -266,8 +265,8 @@ function getUser(request, reply) {
         reply(res.err).code(500)
       } else if (!res.data || !res.data[0]) {
         reply({
-          err: 'An error occurred'
-        }).code(500)
+          err: 'User not found'
+        }).code(404)
       } else {
         var user = res.data[0];
         delete user.password
