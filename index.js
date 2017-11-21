@@ -38,20 +38,29 @@ var yar_options = {
     isSecure: false
   }
 }
+/**
+{
+    register: require('node-hapi-airbrake'),
+    options: {
+      key: process.env.errbit_key,
+      host: process.env.errbit_server
+    }
+},
+**/
 
 server.register([{
   register: require('yar'),
   options: yar_options
 },
-
+{
+    register: require('node-hapi-airbrake'),
+    options: {
+      key: process.env.errbit_key,
+      host: process.env.errbit_server
+    }
+},
 
   {
-      register: require('node-hapi-airbrake'),
-      options: {
-        key: process.env.errbit_key,
-        host: process.env.errbit_server
-      }
-  },{
     // Plugin to display the routes table to console at startup
     // See https://www.npmjs.com/package/blipp
     register: require('blipp'),
@@ -96,7 +105,8 @@ server.register([{
   server.auth.strategy('jwt', 'jwt',
     { key: process.env.JWT_SECRET,          // Never Share your secret key
       validateFunc: validateJWT,            // validate function defined above
-      verifyOptions: {} // pick a strong algorithm
+      verifyOptions: {}, // pick a strong algorithm
+      verifyFunc: validateJWT
     })
 
   server.auth.default('jwt')
