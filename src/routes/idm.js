@@ -13,11 +13,14 @@ module.exports = [
   { method: 'POST', path: '/idm/' + version + '/user', handler: IDM.createUser , config:{description:'Create a new user in IDM'}},
   { method: 'PUT', path: '/idm/' + version + '/user', handler: IDM.updatePassword , config:{description:'TODO:'}},
   { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{description:'TODO:'} },
-  { method: 'POST', path: '/idm/' + version + '/resetPassword', handler: IDM.resetPassword, config:{description:'TODO:', validate : {
-    payload : {
-      emailAddress : Joi.string().email().required()
+  { method: 'POST', path: '/idm/' + version + '/resetPassword', handler: IDM.resetPassword, config:{
+    description: 'Generates new password reset GUID for user and sends notification email',
+    validate : {
+      payload : {
+        emailAddress : Joi.string().email().required()
+      }
     }
-  }}},
+  }},
   { method: 'GET', path: '/idm/' + version + '/resetPassword', handler: IDM.getResetPasswordGuid, config:{
     description:'Get password reset GUID for user with specified email address',
     validate : {

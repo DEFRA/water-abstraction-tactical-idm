@@ -68,7 +68,9 @@ function resetPassword(request, reply) {
     .then((res) =>{
       if(res.data.length == 0){
         //console.log('email not found... shhh...')
-        return reply()
+        // @TODO we don't want to reveal to user if account was found
+        // Check with Dave the implications of 404 here
+        return reply({err : 'User not found'}).code(404);
       }
       var firstname;
       try {

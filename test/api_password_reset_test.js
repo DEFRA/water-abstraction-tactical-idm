@@ -20,11 +20,11 @@ describe('Api', () => {
   describe('GET /idm/1.0/user/resetPassword', () => {
 
     it('should require a JWT', (done) => {
-      helpers.jwtRequiredTest(server, '/idm/1.0/user/resetPassword', 'GET', done);
+      helpers.jwtRequiredTest(server, '/idm/1.0/resetPassword', 'GET', done);
     });
 
     it('should reject invalid JWT', (done) => {
-      helpers.jwtInvalidTest(server, '/idm/1.0/user/resetPassword', 'GET', done);
+      helpers.jwtInvalidTest(server, '/idm/1.0/resetPassword', 'GET', done);
     });
 
     it('should get reset GUID for valid user', (done) => {
@@ -50,7 +50,48 @@ describe('Api', () => {
             done();
           });
     });
-
-
   });
+
+
+
+
+  /*
+   * Test the /POST route
+   */
+   describe('POST /idm/1.0/user/resetPassword', () => {
+
+     it('should require a JWT', (done) => {
+       helpers.jwtRequiredTest(server, '/idm/1.0/resetPassword', 'POST', done);
+     });
+
+     it('should reject invalid JWT', (done) => {
+       helpers.jwtInvalidTest(server, '/idm/1.0/resetPassword', 'POST', done);
+     });
+
+     it('should set reset GUID for valid user', (done) => {
+       chai.request(server.listener)
+           .post('/idm/1.0/resetPassword')
+           .set('Authorization', process.env.JWT_TOKEN)
+           .field('emailAddress', process.env.TEST_USERNAME)
+           .end((err, res) => {
+             // console.log(res);
+             expect(res.status).to.equal(200);
+             done();
+           });
+     });
+
+     it('should return 404 for non-existent user', (done) => {
+       chai.request(server.listener)
+           .post('/idm/1.0/resetPassword')
+           .set('Authorization', process.env.JWT_TOKEN)
+           .field('emailAddress', 'invaliduser@example.com')
+           .end((err, res) => {
+             // console.log(res);
+             expect(res.status).to.equal(404);
+             done();
+           });
+     });
+   });
+
+
 });
