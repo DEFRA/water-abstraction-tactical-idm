@@ -74,7 +74,6 @@ describe('Api', () => {
            .set('Authorization', process.env.JWT_TOKEN)
            .field('emailAddress', process.env.TEST_USERNAME)
            .end((err, res) => {
-             // console.log(res);
              expect(res.status).to.equal(200);
              done();
            });
@@ -86,7 +85,6 @@ describe('Api', () => {
            .set('Authorization', process.env.JWT_TOKEN)
            .field('emailAddress', 'invaliduser@example.com')
            .end((err, res) => {
-             // console.log(res);
              expect(res.status).to.equal(404);
              done();
            });

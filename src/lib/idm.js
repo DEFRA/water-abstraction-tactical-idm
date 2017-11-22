@@ -14,6 +14,7 @@ function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
     values (lower($1),$2,$3,$4,$5,$6)`
+
     var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
@@ -179,7 +180,7 @@ function doUserLogin(user_name,password,admin){
             })
           });
         } else {
-          console.log('rejected for incorect email')
+          console.log('rejected for incorrect email')
           reject('Incorrect login')
         }
       })

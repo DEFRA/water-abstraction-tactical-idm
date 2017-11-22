@@ -10,7 +10,17 @@ const Joi = require('joi')
 
 module.exports = [
   { method: 'GET', path: '/status', handler: function(request,reply){return reply('ok').code(200)}, config:{auth: false,description:'Status placeholder'}},
-  { method: 'POST', path: '/idm/' + version + '/user', handler: IDM.createUser , config:{description:'Create a new user in IDM'}},
+  { method: 'POST', path: '/idm/' + version + '/user', handler: IDM.createUser , config:{
+    description:'Create a new user in IDM',
+    validate : {
+      payload : {
+        username : Joi.string().email().required(),
+        password : Joi.string().required(),
+        admin : Joi.boolean(),
+        user_data : Joi.object()
+      }
+    }
+  }},
   { method: 'PUT', path: '/idm/' + version + '/user', handler: IDM.updatePassword , config:{description:'TODO:'}},
   { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{description:'TODO:'} },
   { method: 'POST', path: '/idm/' + version + '/resetPassword', handler: IDM.resetPassword, config:{
