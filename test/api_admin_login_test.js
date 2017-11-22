@@ -14,7 +14,7 @@ chai.use(chaiHttp);
 
 describe('Api', () => {
 
-  describe('POST /idm/1.0/user/loginAdmin', () => {
+  describe('PUT /idm/1.0/user', () => {
 
     it('should require a JWT', (done) => {
       helpers.jwtRequiredTest(server, '/idm/1.0/user/loginAdmin', 'POST', done);

@@ -21,7 +21,15 @@ module.exports = [
       }
     }
   }},
-  { method: 'PUT', path: '/idm/' + version + '/user', handler: IDM.updatePassword , config:{description:'TODO:'}},
+  { method: 'PUT', path: '/idm/' + version + '/user', handler: IDM.updatePassword , config:{
+    description: 'Updates a users password to that specified',
+    validate: {
+      payload : {
+        username : Joi.string().email().required(),
+        password : Joi.string().required()
+      }
+    }
+  }},
   { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{description:'TODO:'} },
   { method: 'POST', path: '/idm/' + version + '/resetPassword', handler: IDM.resetPassword, config:{
     description: 'Generates new password reset GUID for user and sends notification email',

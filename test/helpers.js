@@ -22,6 +22,10 @@ function chaiRequest(server, url, method) {
     return chai.request(server.listener)
       .post(url);
   }
+  if(method === 'PUT') {
+    return chai.request(server.listener)
+      .put(url);
+  }
   throw new Exception(`Unsupported method ${method}`);
 }
 
@@ -45,7 +49,7 @@ function jwtRequiredTest(server, url, method='GET', cb) {
 
 /**
  * Checks a route where JWT is required
- * An invalid JWT token is set as an Authorization header so should faiol with 401 
+ * An invalid JWT token is set as an Authorization header so should faiol with 401
  * @function
  * @param {Object} server - the server returned from the HAPI app
  * @param {String} url - the URL to call
