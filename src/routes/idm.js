@@ -70,7 +70,9 @@ module.exports = [
 
   // Get info on a single user with id {user_id}
   { method: 'GET', path: '/idm/' + version + '/user/{user_id}', handler: IDM.getUser, config:{description:'TODO:'} },
-  { method: 'GET', path: '/idm/' + version + '/user', handler: IDM.getUsers, config:{description:'TODO:'} },
+  { method: 'GET', path: '/idm/' + version + '/user', handler: IDM.getUsers, config:{
+    description: 'Get a list of all users in IDM'
+  }},
   {
       method: '*',
       path: '/', // catch-all path
