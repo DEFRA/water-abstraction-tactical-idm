@@ -9,7 +9,10 @@ const version = '1.0'
 const Joi = require('joi')
 
 module.exports = [
-  { method: 'GET', path: '/status', handler: function(request,reply){return reply('ok').code(200)}, config:{auth: false,description:'Status placeholder'}},
+  { method: 'GET', path: '/status', handler: function(request,reply){return reply('ok').code(200)}, config:{
+    auth: false,
+    description: 'Status placeholder'
+  }},
   { method: 'POST', path: '/idm/' + version + '/user', handler: IDM.createUser , config:{
     description:'Create a new user in IDM',
     validate : {
@@ -67,9 +70,14 @@ module.exports = [
       }
     }
   }},
-
-  // Get info on a single user with id {user_id}
-  { method: 'GET', path: '/idm/' + version + '/user/{user_id}', handler: IDM.getUser, config:{description:'TODO:'} },
+  { method: 'GET', path: '/idm/' + version + '/user/{user_id}', handler: IDM.getUser, config:{
+    description:'Get a specific user record by user ID',
+    validate : {
+      params : {
+        user_id : Joi.number().required()
+      }
+    }
+  }},
   { method: 'GET', path: '/idm/' + version + '/user', handler: IDM.getUsers, config:{
     description: 'Get a list of all users in IDM'
   }},
