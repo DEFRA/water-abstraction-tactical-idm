@@ -101,17 +101,23 @@ function resetPassword(request, reply) {
 function getResetPasswordGuid(request, reply) {
   var query = `select reset_guid from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.query.emailAddress]
+
   DB.query(query, queryParams)
     .then((res) => {
+
       if (res.err) {
         reply(res.err).code(500)
       } else if (!res.data || !res.data[0]) {
         reply({
           err: 'Reset GUID not found for user'
-        }).code(500)
+        }).code(404)
       } else {
         reply(res.data[0])
       }
+    })
+    .catch((e) => {
+      console.log(e);
+      reply(e);
     })
 }
 
@@ -142,8 +148,8 @@ function doUserLogin(user_name,password,admin){
       var query = `select * from idm.users where lower(user_name)=lower($1)`
     }
     var queryParams = [user_name]
-    console.log(query)
-    console.log(queryParams)
+    // console.log(query)
+    // console.log(queryParams)
     DB.query(query, queryParams)
       .then((UserRes) => {
         //admin login query result

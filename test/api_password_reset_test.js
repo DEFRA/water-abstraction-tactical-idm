@@ -9,9 +9,7 @@ const server = require('../index');
 const expect = chai.expect;
 const helpers = require('./helpers');
 
-
 chai.use(chaiHttp);
-
 
 //Our parent block
 describe('Api', () => {
@@ -19,32 +17,35 @@ describe('Api', () => {
  /*
   * Test the /GET route
   */
-  describe('GET /idm/1.0/user/{id}', () => {
+  describe('GET /idm/1.0/user/resetPassword', () => {
 
     it('should require a JWT', (done) => {
-      helpers.jwtRequiredTest(server, `/idm/1.0/user/${ process.env.TEST_USER_ID }`, 'GET', done);
+      helpers.jwtRequiredTest(server, '/idm/1.0/user/resetPassword', 'GET', done);
     });
 
     it('should reject invalid JWT', (done) => {
-      helpers.jwtInvalidTest(server, `/idm/1.0/user/${ process.env.TEST_USER_ID }`, 'GET', done);
+      helpers.jwtInvalidTest(server, '/idm/1.0/user/resetPassword', 'GET', done);
     });
 
-    it('should find valid user', (done) => {
+    it('should get reset GUID for valid user', (done) => {
       chai.request(server.listener)
-          .get(`/idm/1.0/user/${ process.env.TEST_USER_ID }`)
+          .get('/idm/1.0/resetPassword')
           .set('Authorization', process.env.JWT_TOKEN)
+          .query({emailAddress: process.env.TEST_USERNAME})
           .end((err, res) => {
-            expect(res.body.user_name).to.equal(process.env.TEST_USERNAME);
+            // console.log(res);
             expect(res.status).to.equal(200);
             done();
           });
     });
 
-    it('should not find invalid user', (done) => {
+    it('should return 404 for non-existent user', (done) => {
       chai.request(server.listener)
-          .get(`/idm/1.0/user/9999999999999999999999`)
+          .get('/idm/1.0/resetPassword')
           .set('Authorization', process.env.JWT_TOKEN)
+          .query({emailAddress: 'invaliduser@example.com'})
           .end((err, res) => {
+            // console.log(res);
             expect(res.status).to.equal(404);
             done();
           });

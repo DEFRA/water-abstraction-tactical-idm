@@ -7,8 +7,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../index');
 const expect = chai.expect;
-const jwt = require('jsonwebtoken');
-const invalidJwt = jwt.sign('invalid-payload', 'invalid-secret');
+const helpers = require('./helpers');
 
 
 chai.use(chaiHttp);
@@ -18,27 +17,11 @@ describe('Api', () => {
   describe('POST /idm/1.0/user/loginAdmin', () => {
 
     it('should require a JWT', (done) => {
-      chai.request(server.listener)
-          .post('/idm/1.0/user/loginAdmin')
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Missing authentication');
-            expect(res.status).to.equal(401);
-            done();
-          });
+      helpers.jwtRequiredTest(server, '/idm/1.0/user/loginAdmin', 'POST', done);
     });
 
-
     it('should reject invalid JWT', (done) => {
-      chai.request(server.listener)
-          .post('/idm/1.0/user/loginAdmin')
-          .set('Authorization', invalidJwt)
-          .field('user_name', process.env.TEST_USERNAME)
-          .field('password', process.env.TEST_PASSWORD)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Invalid token');
-            expect(res.status).to.equal(401);
-            done();
-          });
+      helpers.jwtInvalidTest(server, '/idm/1.0/user/loginAdmin', 'POST', done);
     });
 
     it('should require username field', (done) => {
