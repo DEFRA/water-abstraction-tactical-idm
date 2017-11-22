@@ -88,6 +88,7 @@ function resetPassword(request, reply) {
             firstname: firstname,
             resetGuid: resetGuid
           }).then((res) => {
+            console.log('notify', res);
             return reply(res)
           }).catch((res) => {
             //console.log('could not send email with notify')

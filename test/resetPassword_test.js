@@ -17,7 +17,7 @@ describe('Api', () => {
  /*
   * Test the /GET route
   */
-  describe('GET /idm/1.0/user/resetPassword', () => {
+  describe('GET /idm/1.0/resetPassword', () => {
 
     it('should require a JWT', (done) => {
       helpers.jwtRequiredTest(server, '/idm/1.0/resetPassword', 'GET', done);
@@ -58,7 +58,7 @@ describe('Api', () => {
   /*
    * Test the /POST route
    */
-   describe('POST /idm/1.0/user/resetPassword', () => {
+   describe('POST /idm/1.0/resetPassword', () => {
 
      it('should require a JWT', (done) => {
        helpers.jwtRequiredTest(server, '/idm/1.0/resetPassword', 'POST', done);

@@ -33,7 +33,15 @@ module.exports = [
       }
     }
   }},
-  { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{description:'TODO:'} },
+  { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{
+    description:'Changes a users password who has a valid reset GUID',
+    validate: {
+      payload : {
+        password : Joi.string().required(),
+        resetGuid : Joi.string().required()
+      }
+    }
+  }},
   { method: 'POST', path: '/idm/' + version + '/resetPassword', handler: IDM.resetPassword, config:{
     description: 'Generates new password reset GUID for user and sends notification email',
     validate : {
