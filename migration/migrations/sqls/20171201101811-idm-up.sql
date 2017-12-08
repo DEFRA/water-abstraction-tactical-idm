@@ -44,7 +44,7 @@ CREATE TABLE if not exists "users" (
   "bad_logins" int8
 )
 ;
-ALTER TABLE "users" OWNER TO "postgres";
+
 
 -- ----------------------------
 -- Records of users
