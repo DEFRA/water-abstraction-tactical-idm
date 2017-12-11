@@ -19,7 +19,7 @@ module.exports = [
       payload : {
         username : Joi.string().email().required(),
         password : Joi.string().required(),
-        admin : Joi.boolean(),
+        admin : Joi.number(),
         user_data : Joi.object()
       }
     }
