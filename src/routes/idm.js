@@ -20,7 +20,8 @@ module.exports = [
         username : Joi.string().email().required(),
         password : Joi.string().required(),
         admin : Joi.number(),
-        user_data : Joi.object()
+        user_data : Joi.object(),
+        reset_required: Joi.number()
       }
     }
   }},
