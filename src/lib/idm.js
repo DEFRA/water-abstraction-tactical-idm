@@ -65,6 +65,7 @@ function resetPassword(request, reply) {
   //get the user info
   var query = `select * from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.payload.emailAddress]
+
   DB.query(query, queryParams)
     .then((res) =>{
       if(res.data.length == 0){
@@ -75,7 +76,7 @@ function resetPassword(request, reply) {
       }
       var firstname;
       try {
-        firstname = JSON.parse(res.data[0].user_data).firstname
+        firstname = JSON.parse(res.data[0].user_data).firstname || '(User)'
       } catch (e) {
         firstname = '(User)'
       }
