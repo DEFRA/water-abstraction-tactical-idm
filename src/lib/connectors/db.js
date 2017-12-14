@@ -22,7 +22,8 @@ function query (queryString, params, cb) {
       cb({data: res.rows, error: null})
     }) // brianc
     .catch(err => {
-      cb({error: err.stack, data: null})
+      const {stack, code} = err;
+      cb({error: {stack, code}, data: null})
     })
 }
 

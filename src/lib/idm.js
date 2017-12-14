@@ -14,6 +14,7 @@ function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
     values (lower($1),$2,$3,$4,$5,$6)`
+
     var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
@@ -64,15 +65,18 @@ function resetPassword(request, reply) {
   //get the user info
   var query = `select * from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.payload.emailAddress]
+
   DB.query(query, queryParams)
     .then((res) =>{
       if(res.data.length == 0){
         //console.log('email not found... shhh...')
-        return reply()
+        // @TODO we don't want to reveal to user if account was found
+        // Check with Dave the implications of 404 here
+        return reply({err : 'User not found'}).code(404);
       }
       var firstname;
       try {
-        firstname = JSON.parse(res.data[0].user_data).firstname
+        firstname = JSON.parse(res.data[0].user_data).firstname || '(User)'
       } catch (e) {
         firstname = '(User)'
       }
@@ -85,6 +89,7 @@ function resetPassword(request, reply) {
             firstname: firstname,
             resetGuid: resetGuid
           }).then((res) => {
+            console.log('notify', res);
             return reply(res)
           }).catch((res) => {
             //console.log('could not send email with notify')
@@ -101,22 +106,27 @@ function resetPassword(request, reply) {
 function getResetPasswordGuid(request, reply) {
   var query = `select reset_guid from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.query.emailAddress]
+
   DB.query(query, queryParams)
     .then((res) => {
+
       if (res.err) {
         reply(res.err).code(500)
       } else if (!res.data || !res.data[0]) {
         reply({
           err: 'Reset GUID not found for user'
-        }).code(500)
+        }).code(404)
       } else {
         reply(res.data[0])
       }
     })
+    .catch((e) => {
+      console.log(e);
+      reply(e);
+    })
 }
 
 function loginUser(request, reply) {
-
 
   doUserLogin (request.payload.user_name,request.payload.password,0).then((result)=>{
     return reply(result)
@@ -143,8 +153,8 @@ function doUserLogin(user_name,password,admin){
       var query = `select * from idm.users where lower(user_name)=lower($1)`
     }
     var queryParams = [user_name]
-    console.log(query)
-    console.log(queryParams)
+    // console.log(query)
+    // console.log(queryParams)
     DB.query(query, queryParams)
       .then((UserRes) => {
         //admin login query result
@@ -172,7 +182,7 @@ function doUserLogin(user_name,password,admin){
             })
           });
         } else {
-          console.log('rejected for incorect email')
+          console.log('rejected for incorrect email')
           reject('Incorrect login')
         }
       })
@@ -266,8 +276,8 @@ function getUser(request, reply) {
         reply(res.err).code(500)
       } else if (!res.data || !res.data[0]) {
         reply({
-          err: 'An error occurred'
-        }).code(500)
+          err: 'User not found'
+        }).code(404)
       } else {
         var user = res.data[0];
         delete user.password
