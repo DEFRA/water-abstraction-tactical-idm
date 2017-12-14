@@ -164,7 +164,7 @@ function doUserLogin(user_name,password,admin){
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
 
-            Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.environment).then(()=>{
+            Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.NODEENV).then(()=>{
 
             }).catch(()=>{
 
