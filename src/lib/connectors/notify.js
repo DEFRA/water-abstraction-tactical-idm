@@ -1,14 +1,15 @@
 function sendPasswordResetEmail(params) {
 
   return new Promise((resolve, reject) => {
-
+    console.log(params)
 
     var NotifyClient = require('notifications-node-client').NotifyClient,
       notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
     var templateId = '78261167-9e03-41a8-9292-cbed017d795a'
+    var reset_url=`${process.env.reset_url}${params.resetGuid}`
     var personalisation = {
       firstname: params.firstname,
-      resetguid: params.resetGuid
+      reset_url: reset_url
     }
     var emailAddress = params.email
     notifyClient
@@ -34,8 +35,9 @@ function sendPasswordLockEmail(params) {
     var NotifyClient = require('notifications-node-client').NotifyClient,
       notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
     var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
+    var reset_url=`${process.env.reset_url}${params.resetGuid}`
     var personalisation = {
-      resetguid: params.resetGuid,
+      reset_url : reset_url,
       firstname:params.firstname,
     }
     var emailAddress = params.email
