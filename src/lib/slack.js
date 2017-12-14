@@ -1,6 +1,5 @@
 //contains generic functions unrelated to a specific component
 var rp = require('request-promise-native').defaults({
-    proxy:null,
     strictSSL :false
   })
 
