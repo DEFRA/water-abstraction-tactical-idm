@@ -1,7 +1,8 @@
 # water-abstraction-tactical-idm
 
-Tactical Project for the GOV.UK Water Abstraction service
+IDM service for the GOV.UK Water Abstraction service, using the HAPI engine for Node.js + the Handlebars view engine, with a Postgres datastore.
 
+See water-abstraction/deploy-script on internal gitlab for deployment instructions
 
 ### TEST_USERNAME
 The username for a test user account for unit testing
