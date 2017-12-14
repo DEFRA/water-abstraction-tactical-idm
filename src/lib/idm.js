@@ -1,6 +1,8 @@
 const Helpers = require('./helpers')
 const DB = require('./connectors/db')
 const Notify = require('./connectors/notify')
+const Slack = require('./slack')
+
 
 
 function loginError(request, reply) {
@@ -65,7 +67,6 @@ function resetPassword(request, reply) {
   //get the user info
   var query = `select * from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.payload.emailAddress]
-
   DB.query(query, queryParams)
     .then((res) =>{
       if(res.data.length == 0){
@@ -76,7 +77,7 @@ function resetPassword(request, reply) {
       }
       var firstname;
       try {
-        firstname = JSON.parse(res.data[0].user_data).firstname || '(User)'
+        firstname = JSON.parse(res.data[0].user_data).firstname
       } catch (e) {
         firstname = '(User)'
       }
@@ -162,14 +163,23 @@ function doUserLogin(user_name,password,admin){
         if (UserRes.data[0]) {
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
-            resolve({
-              user_id: UserRes.data[0].user_id,
-              err: null,
-              reset_required: UserRes.data[0].reset_required,
-              reset_guid: UserRes.data[0].reset_guid,
-              last_login_date:UserRes.data[0].last_login_date,
-              bad_logins:UserRes.data[0].bad_logins
+
+            Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.environment).then(()=>{
+
+            }).catch(()=>{
+
+            }).then(()=>{
+              resolve({
+                user_id: UserRes.data[0].user_id,
+                err: null,
+                reset_required: UserRes.data[0].reset_required,
+                reset_guid: UserRes.data[0].reset_guid,
+                last_login_date:UserRes.data[0].last_login_date,
+                bad_logins:UserRes.data[0].bad_logins
+              })
             })
+
+
           });
           }).catch(() => {
 //            console.log('rejected for incorect hash')
@@ -256,7 +266,7 @@ function increaseLockCount(user){
 
 function resetLockCount(user){
   return new Promise((resolve, reject) => {
-    var query = `update idm.users set bad_logins=0 where user_id=$1`
+    var query = `update idm.users set bad_logins=0,last_login=clock_timestamp()  where user_id=$1`
     var queryParams = [user.user_id]
     DB.query(query, queryParams).then((res)=>{
       resolve()
