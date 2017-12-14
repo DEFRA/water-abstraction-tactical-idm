@@ -164,7 +164,25 @@ function doUserLogin(user_name,password,admin){
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
 
+            console.log('start slack')
             Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.NODEENV).then(()=>{
+              console.log('done slack')
+
+
+              var query = `select split_part(user_name,'@',1)||'...' as id, last_login from idm.users order by last_login desc`
+              DB.query(query).then((res)=>{
+                var logins='*Login History:*'
+                for (r in res.data){
+                  logins+=`\n ${res.data[r].id} ${res.data[r].last_login}`
+                }
+                console.log(logins)
+                Slack.post(logins).then()
+                resolve()
+              }).catch((err)=>{
+                console.log(err)
+                reject()
+              })
+
 
             }).catch(()=>{
 
