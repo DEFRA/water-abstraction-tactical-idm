@@ -1,6 +1,7 @@
 const Helpers = require('./helpers')
 const DB = require('./connectors/db')
 const Notify = require('./connectors/notify')
+const Slack = require('./slack')
 
 
 function loginError(request, reply) {
@@ -158,19 +159,41 @@ function doUserLogin(user_name,password,admin){
     DB.query(query, queryParams)
       .then((UserRes) => {
         //admin login query result
-        console.log(UserRes)
         if (UserRes.data[0]) {
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
-            resolve({
-              user_id: UserRes.data[0].user_id,
-              err: null,
-              reset_required: UserRes.data[0].reset_required,
-              reset_guid: UserRes.data[0].reset_guid,
-              last_login_date:UserRes.data[0].last_login_date,
-              bad_logins:UserRes.data[0].bad_logins
+
+            Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.NODEENV).then(()=>{
+
+
+              var query = `select split_part(user_name,'@',1)||'...' as id, last_login from idm.users order by last_login desc`
+              DB.query(query).then((res)=>{
+                var logins=`* ${process.env.NODEENV} Login History:*`
+                for (r in res.data){
+                  logins+=`\n ${res.data[r].id} ${res.data[r].last_login}`
+                }
+                console.log(logins)
+                Slack.post(logins).then(()=>{})
+                .catch(()=>{})
+                .then(()=>{
+                  resolve({
+                    user_id: UserRes.data[0].user_id,
+                    err: null,
+                    reset_required: UserRes.data[0].reset_required,
+                    reset_guid: UserRes.data[0].reset_guid,
+                    last_login_date:UserRes.data[0].last_login_date,
+                    bad_logins:UserRes.data[0].bad_logins
+                  })
+                })
+
+              }).catch((err)=>{
+                console.log(err)
+                reject()
+              })
+
             })
-          });
+            })
+
           }).catch(() => {
 //            console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(()=>{
