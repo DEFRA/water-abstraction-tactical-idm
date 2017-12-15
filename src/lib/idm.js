@@ -291,7 +291,15 @@ function resetLockCount(user){
 
 
 function getUser(request, reply) {
-  var query = `select * from idm.users where user_id=$1`
+  // Find user by numeric ID
+  if(typeof(request.params.user_id) === 'number') {
+    var query = `select * from idm.users where user_id=$1`
+  }
+  // Find user by email address
+  else {
+      var query = `select * from idm.users where user_name=$1`
+  }
+
   var queryParams = [request.params.user_id]
   DB.query(query, queryParams)
     .then((res) => {

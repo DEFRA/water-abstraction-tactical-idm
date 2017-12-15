@@ -80,10 +80,10 @@ module.exports = [
     }
   }},
   { method: 'GET', path: '/idm/' + version + '/user/{user_id}', handler: IDM.getUser, config:{
-    description:'Get a specific user record by user ID',
+    description:'Get a specific user record by user ID or email',
     validate : {
       params : {
-        user_id : Joi.number().required()
+        user_id : [Joi.number().required(), Joi.string().email().required()]
       }
     }
   }},
