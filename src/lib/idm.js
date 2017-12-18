@@ -66,7 +66,6 @@ function resetPassword(request, reply) {
   //get the user info
   var query = `select * from idm.users where lower(user_name) = lower($1)`
   var queryParams = [request.payload.emailAddress]
-
   DB.query(query, queryParams)
     .then((res) =>{
       if(res.data.length == 0){
@@ -77,7 +76,7 @@ function resetPassword(request, reply) {
       }
       var firstname;
       try {
-        firstname = JSON.parse(res.data[0].user_data).firstname || '(User)'
+        firstname = JSON.parse(res.data[0].user_data).firstname
       } catch (e) {
         firstname = '(User)'
       }
@@ -279,7 +278,7 @@ function increaseLockCount(user){
 
 function resetLockCount(user){
   return new Promise((resolve, reject) => {
-    var query = `update idm.users set bad_logins=0 where user_id=$1`
+    var query = `update idm.users set bad_logins=0,last_login=clock_timestamp()  where user_id=$1`
     var queryParams = [user.user_id]
     DB.query(query, queryParams).then((res)=>{
       resolve()
@@ -291,7 +290,15 @@ function resetLockCount(user){
 
 
 function getUser(request, reply) {
-  var query = `select * from idm.users where user_id=$1`
+  // Find user by numeric ID
+  if(typeof(request.params.user_id) === 'number') {
+    var query = `select * from idm.users where user_id=$1`
+  }
+  // Find user by email address
+  else {
+      var query = `select * from idm.users where user_name=$1`
+  }
+
   var queryParams = [request.params.user_id]
   DB.query(query, queryParams)
     .then((res) => {
