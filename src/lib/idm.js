@@ -4,7 +4,6 @@ const Notify = require('./connectors/notify')
 const Slack = require('./slack')
 
 
-
 function loginError(request, reply) {
   reply({
     user_id: null,
