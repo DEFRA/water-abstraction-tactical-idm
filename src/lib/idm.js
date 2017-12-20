@@ -79,7 +79,7 @@ function resetPasswordQuiet(request, reply) {
     const res = await DB.query(query, queryParams);
     if(res.data && res.data.length==1) {
       const {user_id, user_name, reset_guid, last_login} = res.data[0];
-      return {user_id, user_name, reset_guid, last_login};
+      return {user_id, user_name, last_login};
     }
     throw {name : 'UserNotFoundError'};
   }
@@ -107,7 +107,7 @@ function resetPasswordQuiet(request, reply) {
   async function _findAndReset(emailAddress, resetRequired) {
     const user = await _findUser(emailAddress);
     const reset_guid = await _resetPassword(emailAddress, resetRequired);
-    return user;
+    return {reset_guid, ...user};
   }
 
   _findAndReset(request.payload.emailAddress, request.payload.resetRequired)
