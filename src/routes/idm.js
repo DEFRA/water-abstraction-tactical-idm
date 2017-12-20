@@ -55,7 +55,8 @@ module.exports = [
     description: 'Generates new password reset GUID for user',
     validate : {
       payload : {
-        emailAddress : Joi.string().email().required()
+        emailAddress : Joi.string().email().required(),
+        resetRequired : Joi.boolean()
       }
     }
   }},
