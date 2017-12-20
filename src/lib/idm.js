@@ -61,6 +61,63 @@ function changePasswordWithResetLink(request, reply) {
   );
 }
 
+
+
+/**
+ * Method to reset password without sending Notify email
+ */
+function resetPasswordQuiet(request, reply) {
+
+  /**
+   * Finds the user in the DB by email address
+   * @param {String} emailAddress
+   * @return {Promise} resolves with object containing user data
+   */
+  async function _findUser(emailAddress) {
+    const query = `select * from idm.users where lower(user_name) = lower($1)`;
+    const queryParams = [emailAddress];
+    const res = await DB.query(query, queryParams);
+    if(res.data && res.data.length==1) {
+      return res.data[0];
+    }
+    throw {name : 'UserNotFoundError'};
+  }
+
+  /**
+   * Sets user reset GUID for user specified by email address
+   * @param {String} emailAddress
+   * @return {Promise} resolves with string containing new reset GUID
+   */
+  async function _resetPassword(emailAddress) {
+    const resetGuid = Helpers.createGUID();
+    const query = `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`;
+    const queryParams = [resetGuid, emailAddress];
+    const res = await DB.query(query, queryParams);
+    if(!res.error) {
+      return resetGuid;
+    }
+    throw {name : 'ResetFailedError'};
+  }
+
+  // Process request
+  _findUser(request.payload.emailAddress)
+    .then((user) => {
+      return _resetPassword(request.payload.emailAddress);
+    })
+    .then((reset_guid) => {
+      reply({error : null, data : {reset_guid}});
+    })
+    .catch((error) => {
+      if(error.name === 'UserNotFoundError') {
+        return reply({error, data : null}).code(404);
+      }
+      return reply({error, data : null}).code(500);
+      console.error(error);
+    });
+}
+
+
+
 function resetPassword(request, reply) {
   var resetGuid = Helpers.createGUID()
   //get the user info
@@ -343,6 +400,7 @@ module.exports = {
   createUser: createUser,
   updatePassword: updatePassword,
   resetPassword: resetPassword,
+  resetPasswordQuiet,
   getResetPasswordGuid: getResetPasswordGuid,
   changePasswordWithResetLink: changePasswordWithResetLink,
   loginUser: loginUser,
