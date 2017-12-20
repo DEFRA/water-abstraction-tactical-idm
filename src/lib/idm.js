@@ -78,7 +78,8 @@ function resetPasswordQuiet(request, reply) {
     const queryParams = [emailAddress];
     const res = await DB.query(query, queryParams);
     if(res.data && res.data.length==1) {
-      return res.data[0];
+      const {user_id, user_name, reset_guid, last_login} = res.data[0];
+      return {user_id, user_name, reset_guid, last_login};
     }
     throw {name : 'UserNotFoundError'};
   }
@@ -88,9 +89,12 @@ function resetPasswordQuiet(request, reply) {
    * @param {String} emailAddress
    * @return {Promise} resolves with string containing new reset GUID
    */
-  async function _resetPassword(emailAddress) {
+  async function _resetPassword(emailAddress, resetRequired = false) {
     const resetGuid = Helpers.createGUID();
-    const query = `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`;
+    const query = resetRequired
+       ? `update idm.users set reset_guid = $1, reset_required = 1 where lower(user_name) = lower($2)`
+       : `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`;
+
     const queryParams = [resetGuid, emailAddress];
     const res = await DB.query(query, queryParams);
     if(!res.error) {
@@ -99,13 +103,16 @@ function resetPasswordQuiet(request, reply) {
     throw {name : 'ResetFailedError'};
   }
 
-  // Process request
-  _findUser(request.payload.emailAddress)
-    .then((user) => {
-      return _resetPassword(request.payload.emailAddress);
-    })
-    .then((reset_guid) => {
-      reply({error : null, data : {reset_guid}});
+
+  async function _findAndReset(emailAddress, resetRequired) {
+    const user = await _findUser(emailAddress);
+    const reset_guid = await _resetPassword(emailAddress, resetRequired);
+    return user;
+  }
+
+  _findAndReset(request.payload.emailAddress, request.payload.resetRequired)
+    .then((data) => {
+        reply({error : null, data});
     })
     .catch((error) => {
       if(error.name === 'UserNotFoundError') {
