@@ -51,6 +51,15 @@ module.exports = [
       }
     }
   }},
+  { method: 'POST', path: '/idm/' + version + '/resetPasswordQuiet', handler: IDM.resetPasswordQuiet, config:{
+    description: 'Generates new password reset GUID for user',
+    validate : {
+      payload : {
+        emailAddress : Joi.string().email().required(),
+        resetRequired : Joi.boolean()
+      }
+    }
+  }},
   { method: 'GET', path: '/idm/' + version + '/resetPassword', handler: IDM.getResetPasswordGuid, config:{
     description:'Get password reset GUID for user with specified email address',
     validate : {
