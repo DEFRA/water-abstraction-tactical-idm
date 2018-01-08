@@ -5,8 +5,8 @@ function sendPasswordResetEmail(params) {
 
     var NotifyClient = require('notifications-node-client').NotifyClient,
       notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
-    var templateId = '78261167-9e03-41a8-9292-cbed017d795a'
-    var reset_url=`${process.env.reset_url}${params.resetGuid}`
+    var templateId = 'a699123a-fa28-4938-8d64-5729a36f4437'
+    var reset_url=`${process.env.base_url}/reset_password_change_password?resetGuid=${params.resetGuid}`
     var personalisation = {
       firstname: params.firstname,
       reset_url: reset_url
