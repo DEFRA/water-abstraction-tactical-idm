@@ -1,6 +1,10 @@
 var bcrypt = require('bcrypt');
 
-
+//contains generic functions unrelated to a specific component
+const rp = require('request-promise-native').defaults({
+    proxy:null,
+    strictSSL :false
+  });
 
 
 function createGUID() {
@@ -66,11 +70,66 @@ function decryptToken(token){
 }
 
 
-module.exports = {
-  createGUID:createGUID,
-  createHash:createHash,
-  compareHash:compareHash,
-  encryptToken:encryptToken,
-  decryptToken:decryptToken
+function makeURIRequest(uri) {
+  return new Promise((resolve, reject) => {
+    var options = {
+      method: 'get',
+      uri: uri
+    };
+    rp(options)
+      .then(function(response) {
+        var responseData = {};
+        responseData.error = null
+        responseData.statusCode = 200
+        responseData.body = response
+        resolve(responseData);
+      })
+      .catch(function(response) {
+        var responseData = {};
+        responseData.error = response.error
+        responseData.statusCode = response.statusCode
+        responseData.body = response.body
+        reject(responseData);
+      });
+  })
+}
 
+//make an http request (with a body), uses promises
+function makeURIRequestWithBody(uri, method, data) {
+  return new Promise((resolve, reject) => {
+    var options = {
+      method: method,
+      uri: uri,
+      body: data,
+      json: true
+    };
+
+    rp(options)
+      .then(function(response) {
+        var responseData = {};
+        responseData.error = null
+        responseData.statusCode = 200
+        responseData.body = response
+        resolve(responseData);
+      })
+      .catch(function(response) {
+        var responseData = {};
+        responseData.error = response.error
+        responseData.statusCode = response.statusCode
+        responseData.body = response.body
+        reject(responseData);
+      });
+
+  })
+
+}
+
+module.exports = {
+  createGUID,
+  createHash,
+  compareHash,
+  encryptToken,
+  decryptToken,
+  makeURIRequest,
+  makeURIRequestWithBody
 }
