@@ -1,26 +1,25 @@
+const Water = require('./water')
+
+
+
 function sendPasswordResetEmail(params) {
 
   return new Promise((resolve, reject) => {
     console.log(params)
-
-    var NotifyClient = require('notifications-node-client').NotifyClient,
-      notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
-    var templateId = 'a699123a-fa28-4938-8d64-5729a36f4437'
-    var reset_url=`${process.env.base_url}/reset_password_change_password?resetGuid=${params.resetGuid}`
+    var reset_url = `${process.env.base_url}/reset_password_change_password?resetGuid=${params.resetGuid}`
     var personalisation = {
       firstname: params.firstname,
       reset_url: reset_url
     }
     var emailAddress = params.email
-    notifyClient
-      .sendEmail(templateId, emailAddress, personalisation)
-      .then((response) => {
-        resolve (true)
+    Water.sendNotifyMessage('password_reset_email', emailAddress, personalisation)
+    .then((response) => {
+        resolve(true)
       })
       .catch((err) => {
         console.log('Error occurred sending notify email')
         console.log(err.message)
-        resolve (true)
+        resolve(true)
       });
   });
 
@@ -35,22 +34,21 @@ function sendPasswordLockEmail(params) {
     var NotifyClient = require('notifications-node-client').NotifyClient,
       notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
     var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
-    var reset_url=`${process.env.reset_url}${params.resetGuid}`
+    var reset_url = `${process.env.reset_url}${params.resetGuid}`
     var personalisation = {
-      reset_url : reset_url,
-      firstname:params.firstname,
+      reset_url: reset_url,
+      firstname: params.firstname,
     }
     var emailAddress = params.email
-    notifyClient
-      .sendEmail(templateId, emailAddress, personalisation)
+    Water.sendNotifyMessage('password_locked_email', emailAddress, personalisation)
       .then((response) => {
         console.log('notified!')
-        resolve (true)
+        resolve(true)
       })
       .catch((err) => {
         console.log('Error occurred sending notify email')
         console.log(err.message)
-        reject (err)
+        reject(err)
       });
   });
 
