@@ -34,6 +34,26 @@ module.exports = [
       }
     }
   }},
+  { method: 'PATCH', path: '/idm/' + version + '/user/{user_id}', handler: IDM.updateUser , config:{
+    description: 'Updates a user',
+    validate: {
+      payload : {
+        user_name: Joi.string().email(),
+        password : Joi.string(),
+        admin: Joi.number(),
+        user_data:Joi.string(),
+        reset_guid:Joi.string(),
+        reset_required:Joi.string(),
+        bad_logins:Joi.number()
+
+      }
+    }
+  }},
+
+
+
+
+
   { method: 'POST', path: '/idm/' + version + '/changePassword', handler: IDM.changePasswordWithResetLink, config:{
     description:'Changes a users password who has a valid reset GUID',
     validate: {
