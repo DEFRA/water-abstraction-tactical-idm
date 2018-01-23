@@ -13,10 +13,15 @@ function loginError(request, reply) {
 
 function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
+    var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required,metadata)
     values (lower($1),$2,$3,$4,$5,$6)`
 
-    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
+    var metadata='{}'
+    if(request.payload.metadata){
+      JSON.stringify(request.payload.metadata)
+    }
+
+    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1,metadata]
     DB.query(query, queryParams)
       .then((res) => {
         //res.err = null if no error
@@ -31,6 +36,7 @@ function createUser(request, reply) {
   );
 }
 
+
 function updatePassword(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
     var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0 where lower(user_name) = lower($2)`
@@ -44,6 +50,53 @@ function updatePassword(request, reply) {
       reply('Error occurred creating user')
     }
   );
+}
+
+
+/**
+ * Patch update user by user_id
+ * @param {Object} request - HAPI HTTP request
+ * @param {String} request.params.user_id - user id in idm
+ * @param {Object} request.payload - HTTP POST data
+ * @param {String} request.payload.user_name - updated user name
+ * @param {String} request.payload.password - the user's new password
+ * @param {String} request.payload.admin - is admin 1|0
+ * @param {String} request.payload.reset_guid - UUID for password reset
+ * @param {String} request.payload.reset_required - is admin 1|0
+ * @param {String} request.payload.bad_logins - bad login counter
+ * @param {Object} reply - HAPI HTTP reply
+ */
+
+async function updateUser(request, reply) {
+  var query = `select * from idm.users where user_id = $1`
+  var queryParams = [request.params.user_id]
+  try{
+  var existingUser = await DB.query(query, queryParams)
+  var userData=existingUser.data[0]
+  if(request.payload.password){
+      request.payload.password = await Helpers.createHash(request.payload.password)
+  }
+  for(var col in userData){
+    if(request.payload[col]){
+      userData[col]=request.payload[col]
+    }
+  }
+  var query = `update idm.users set
+  user_name=$2,	password=$3, admin=$4,	user_data=$5,	reset_guid=$6, reset_required=$7, bad_logins=$8
+  where user_id = $1`
+  var queryParams = [
+    userData.user_id,userData.user_name,userData.password, userData.admin,userData.user_data,
+    userData.reset_guid,userData.reset_required,userData.bad_logins
+  ]
+  var res = await DB.query(query, queryParams)
+  reply(res)
+}catch(e){
+  console.log(e)
+  reply(e)
+}
+
+
+
 }
 
 // /**
@@ -454,5 +507,6 @@ module.exports = {
   loginAdminUser: loginAdminUser,
   getUser: getUser,
   getUsers: getUsers,
-  loginError: loginError
+  loginError: loginError,
+  updateUser
 }
