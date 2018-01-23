@@ -13,15 +13,11 @@ function loginError(request, reply) {
 
 function createUser(request, reply) {
   Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required,metadata)
+    var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
     values (lower($1),$2,$3,$4,$5,$6)`
 
-    var metadata='{}'
-    if(request.payload.metadata){
-      JSON.stringify(request.payload.metadata)
-    }
 
-    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1,metadata]
+    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
         //res.err = null if no error
