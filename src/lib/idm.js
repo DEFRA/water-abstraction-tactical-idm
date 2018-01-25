@@ -161,7 +161,7 @@ function resetPasswordQuiet(request, reply) {
     const res = await DB.query(query, queryParams);
     if(res.data && res.data.length==1) {
       const {user_id, user_name, reset_guid, last_login, user_data} = res.data[0];
-      return {user_id, user_name, last_login};
+      return {user_id, user_name, last_login, user_data};
     }
     throw {name : 'UserNotFoundError'};
   }
