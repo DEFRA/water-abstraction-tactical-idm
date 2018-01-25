@@ -160,8 +160,8 @@ function resetPasswordQuiet(request, reply) {
     const queryParams = [emailAddress];
     const res = await DB.query(query, queryParams);
     if(res.data && res.data.length==1) {
-      const {user_id, user_name, reset_guid, last_login} = res.data[0];
-      return {user_id, user_name, last_login};
+      const {user_id, user_name, reset_guid, last_login, user_data} = res.data[0];
+      return {user_id, user_name, last_login, user_data};
     }
     throw {name : 'UserNotFoundError'};
   }
@@ -327,7 +327,8 @@ function doUserLogin(user_name,password,admin){
                     reset_required: UserRes.data[0].reset_required,
                     reset_guid: UserRes.data[0].reset_guid,
                     last_login_date:UserRes.data[0].last_login_date,
-                    bad_logins:UserRes.data[0].bad_logins
+                    bad_logins:UserRes.data[0].bad_logins,
+                    user_data:UserRes.data[0].user_data
                   })
                 })
 
