@@ -45,6 +45,9 @@ CREATE TABLE if not exists "users" (
 )
 ;
 
+ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
+ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+
 
 -- ----------------------------
 -- Records of users
