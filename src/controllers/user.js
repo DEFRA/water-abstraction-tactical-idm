@@ -33,12 +33,12 @@ module.exports = (config = {}) => {
       return request;
     },
     validation : {
-      user_id :  [Joi.number().required(), Joi.string().email().required()],
-      user_name : Joi.string().email(),
+      user_id :  [Joi.number().required(), Joi.string().email().required().lowercase()],
+      user_name : Joi.string().email().trim().lowercase(),
       password : Joi.string(),
       admin : Joi.number(),
       user_data : Joi.object(),
-      reset_guid : Joi.string().guid(),
+      reset_guid : Joi.string().guid().allow(null),
       reset_required: Joi.number(),
       last_login : Joi.string(),
       bad_logins : Joi.number()
