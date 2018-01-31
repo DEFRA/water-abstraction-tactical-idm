@@ -19,6 +19,7 @@ class UserNotFoundError extends Error {
     super(message);
     this.name = 'UserNotFoundError';
   }
+
 }
 
 class NotifyError extends Error {
