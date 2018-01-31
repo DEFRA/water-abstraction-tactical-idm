@@ -7,15 +7,16 @@ const Water = require('./water')
  * these are different depending on the template
  * @param {String} params.loginUrl - the URL to log in to the service
  * @param {String} params.resetUrl - reset password URL including reset GUID
+ * @param {String} params.createUrl- create password - new user
  * @param {String} params.firstName- user's first name
  * @return {Object} personalisation for notify
  */
 function mapNotifyPersonalisation(params, mode) {
-  const {loginUrl, resetUrl, firstName} = params;
+  const {loginUrl, resetUrl, createUrl, firstName} = params;
 
   if(mode === 'new') {
     return {
-      link : resetUrl
+      link : createUrl
     };
   }
   if(mode === 'existing') {
@@ -47,6 +48,7 @@ function sendPasswordResetEmail(params, mode = 'reset') {
   const personalisation = {
     firstName,
     resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`,
+    createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}`,
     loginUrl : `${process.env.base_url}/signin`
   };
   const messageRefs = {
