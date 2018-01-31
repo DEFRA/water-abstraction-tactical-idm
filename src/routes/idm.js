@@ -23,6 +23,19 @@ module.exports = [
   ...UsersController.getRoutes(),
 
 
+  { method: 'PATCH', path: '/idm/' + version + '/reset/{email}', handler: IDM.reset, config: {
+    validate : {
+      params : {
+        email : Joi.string().email().required()
+      },
+      query : {
+        mode : Joi.string()
+      }
+    },
+    description : 'Reset user password and send one of a selection of reset emails'
+  }},
+
+
   // { method: 'POST', path: '/idm/' + version + '/user', handler: IDM.createUser , config:{
   //   description:'Create a new user in IDM',
   //   validate : {

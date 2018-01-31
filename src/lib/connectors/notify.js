@@ -1,7 +1,31 @@
 const Water = require('./water')
 
 
+/**
+ * Sends one of several password reset emails
+ * @param {Object} params - parameters for sending message
+ * @param {String} params.email - email address to send message to
+ * @param {String} params.resetGuid - the reset GUID to uniquely identify the user reset request
+ * @param {String} params.firstName - the first name for personalisation of email message
+ * @return {Promise}
+ * @
+ */
+function sendPasswordResetEmail(params, mode = 'reset') {
+  const {email, resetGuid, firstName} = params;
+  const personalisation = {
+    firstname : firstName,
+    reset_url : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`
+  };
+  const messageRefs = {
+    reset : 'password_reset_email',
+    new : 'new_user_verification_email',
+    existing : 'existing_user_verification_email'
+  };
+  return Water.sendNotifyMessage(messageRefs[mode], email, personalisation);
+}
 
+
+/*
 function sendPasswordResetEmail(params) {
 
   return new Promise((resolve, reject) => {
@@ -24,6 +48,9 @@ function sendPasswordResetEmail(params) {
   });
 
 }
+*/
+
+
 
 function sendPasswordLockEmail(params) {
 
