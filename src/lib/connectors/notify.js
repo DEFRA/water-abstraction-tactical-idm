@@ -2,6 +2,38 @@ const Water = require('./water')
 
 
 /**
+ * @TODO remove this and make Notify emails consistent instead
+ * A function to get a set of personalisation params for the notify call
+ * these are different depending on the template
+ * @param {String} params.loginUrl - the URL to log in to the service
+ * @param {String} params.resetUrl - reset password URL including reset GUID
+ * @param {String} params.firstName- user's first name
+ * @return {Object} personalisation for notify
+ */
+function mapNotifyPersonalisation(params, mode) {
+  const {loginUrl, resetUrl, firstName} = params;
+
+  if(mode === 'new') {
+    return {
+      link : resetUrl
+    };
+  }
+  if(mode === 'existing') {
+    return {
+      link : loginUrl,
+      resetLink : resetUrl
+    };
+  }
+  if(mode === 'reset') {
+    return {
+      firstname : firstName,
+      reset_url : resetUrl
+    };
+  }
+}
+
+
+/**
  * Sends one of several password reset emails
  * @param {Object} params - parameters for sending message
  * @param {String} params.email - email address to send message to
@@ -13,42 +45,18 @@ const Water = require('./water')
 function sendPasswordResetEmail(params, mode = 'reset') {
   const {email, resetGuid, firstName} = params;
   const personalisation = {
-    firstname : firstName,
-    reset_url : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`
+    firstName,
+    resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`,
+    loginUrl : `${process.env.base_url}/signin`
   };
   const messageRefs = {
     reset : 'password_reset_email',
     new : 'new_user_verification_email',
     existing : 'existing_user_verification_email'
   };
-  return Water.sendNotifyMessage(messageRefs[mode], email, personalisation);
+  return Water.sendNotifyMessage(messageRefs[mode], email, mapNotifyPersonalisation(personalisation, mode));
 }
 
-
-/*
-function sendPasswordResetEmail(params) {
-
-  return new Promise((resolve, reject) => {
-    console.log(params)
-    var reset_url = `${process.env.base_url}/reset_password_change_password?resetGuid=${params.resetGuid}`
-    var personalisation = {
-      firstname: params.firstname,
-      reset_url: reset_url
-    }
-    var emailAddress = params.email
-    Water.sendNotifyMessage('password_reset_email', emailAddress, personalisation)
-    .then((response) => {
-        resolve(true)
-      })
-      .catch((err) => {
-        console.log('Error occurred sending notify email')
-        console.log(err.message)
-        resolve(true)
-      });
-  });
-
-}
-*/
 
 
 
