@@ -30,7 +30,11 @@ function createHash(string){
 });
 }
 
-function compareHash(string1,string2){
+async function compareHash(string1,string2){
+
+  console.log(string1, string2);
+  console.log('Hash should be', await createHash(string1));
+
   return new Promise((resolve, reject) => {
     try{
 

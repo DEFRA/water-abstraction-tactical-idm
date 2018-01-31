@@ -11,274 +11,98 @@ function loginError(request, reply) {
   }).code(401)
 }
 
-function createUser(request, reply) {
-  Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
-    values (lower($1),$2,$3,$4,$5,$6)`
+/**
+ * Error class for if user not found
+ */
+class UserNotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UserNotFoundError';
+  }
 
-    try {
-      var user_data=JSON.parse(request.payload.user_data);
-    } catch (e) {
-      var user_data={}
-    }
-    user_data.usertype='external'
-    user_data.firstname=''
-
-
-    var queryParams = [request.payload.username, hashedPW, request.payload.admin, user_data,Helpers.createGUID(),1]
-    DB.query(query, queryParams)
-      .then((res) => {
-        //res.err = null if no error
-        //res.data
-        reply(res)
-      })
-  }).catch(
-    (err) => {
-
-      reply(err)
-    }
-  );
 }
 
-
-function updatePassword(request, reply) {
-  Helpers.createHash(request.payload.password).then((hashedPW) => {
-    var query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0 where lower(user_name) = lower($2)`
-    var queryParams = [hashedPW, request.payload.username]
-    DB.query(query, queryParams)
-      .then((res) => {
-        reply(res)
-      })
-  }).catch(
-    (err) => {
-      reply('Error occurred creating user')
-    }
-  );
+class NotifyError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotifyError';
+  }
 }
-
 
 /**
- * Patch update user by user_id
- * @param {Object} request - HAPI HTTP request
- * @param {String} request.params.user_id - user id in idm
- * @param {Object} request.payload - HTTP POST data
- * @param {String} request.payload.user_name - updated user name
- * @param {String} request.payload.password - the user's new password
- * @param {String} request.payload.admin - is admin 1|0
- * @param {String} request.payload.reset_guid - UUID for password reset
- * @param {String} request.payload.reset_required - is admin 1|0
- * @param {String} request.payload.bad_logins - bad login counter
- * @param {Object} reply - HAPI HTTP reply
+ * Reset password and send email
+ * Modes can be:
+ * - reset : user initiated reset process
+ * - new : new user creating an account for the first time
+ * - existing : user trying to create account, but account already exists
+ *
+ * @param {String} request.params.email - user's email address
+ * @param {String} request.query.mode - mode
  */
-
-async function updateUser(request, reply) {
-  var query = `select * from idm.users where user_id = $1`
-  var queryParams = [request.params.user_id]
-  try{
-  var existingUser = await DB.query(query, queryParams)
-  var userData=existingUser.data[0]
-  if(request.payload.password){
-      request.payload.password = await Helpers.createHash(request.payload.password)
-  }
-  for(var col in userData){
-    if(request.payload[col]){
-      userData[col]=request.payload[col]
-    }
-  }
-  var query = `update idm.users set
-  user_name=$2,	password=$3, admin=$4,	user_data=$5,	reset_guid=$6, reset_required=$7, bad_logins=$8
-  where user_id = $1`
-  var queryParams = [
-    userData.user_id,userData.user_name,userData.password, userData.admin,userData.user_data,
-    userData.reset_guid,userData.reset_required,userData.bad_logins
-  ]
-  var res = await DB.query(query, queryParams)
-  reply(res)
-}catch(e){
-  console.log(e)
-  reply(e)
-}
+async function reset(request, reply) {
+  const mode = request.query.mode || 'reset';
+  const {email} = request.params;
+  const resetGuid = Helpers.createGUID();
 
 
-
-}
-
-// /**
-//  * Changes password for user with reset guid
-//  * @param {Object} request - HAPI HTTP request
-//  * @param {Object} request.query - HTTP GET data
-//  * @param {String} request.query.resetGuid - the reset GUID issued by email
-//  * @param {Object} reply - HAPI HTTP reply
-//  */
-// async function findUserByResetGuid(request, reply) {
-//
-// }
-
-
-/**
- * Changes password for user with reset guid
- * @param {Object} request - HAPI HTTP request
- * @param {Object} request.payload - HTTP POST data
- * @param {String} request.payload.resetGuid - the reset GUID issued by email
- * @param {String} request.payload.password - the user's new password
- * @param {Object} reply - HAPI HTTP reply
- */
-async function changePasswordWithResetLink(request, reply) {
-
-  /**
-   * Update user password
-   * @param {String} resetGuid - the reset GUID emailed to the user for password reset
-   * @param {String} newPassword - the new password in plain text
-   * @return {Promise} resolves when record updated
-   */
-  const _updatePassword = async function(resetGuid, newPassword) {
-    const hash = await Helpers.createHash(newPassword);
-    const query = `update idm.users set password = $1, reset_guid = NULL, bad_logins=0, reset_required = NULL where reset_guid = $2`;
-    const queryParams = [hash, resetGuid];
-    const {error} = await DB.query(query, queryParams);
-    if(error) {
-      throw error;
-    }
-    return true;
-  }
-
+  // Locate user
+  // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
   try {
-    const success = await _updatePassword(request.payload.resetGuid, request.payload.password);
-    reply({error : null});
+      const query = `SELECT * FROM idm.users WHERE LOWER(user_name)=LOWER($1)`;
+      const {err, data} = await DB.query(query, [email]);
+      if(err) {
+        throw err;
+      }
+      if(data.length !== 1) {
+        throw new UserNotFoundError();
+      }
+
+      // Update user with reset guid
+      const query2 = `UPDATE idm.users SET reset_guid=$1 WHERE user_id=$2`;
+      const {err : err2} = await DB.query(query2, [resetGuid, data[0].user_id]);
+      if(err2) {
+        throw err2;
+      }
+
+      // Send password reset email
+      const userData = JSON.parse(data[0].user_data || '{}');
+      const result = await Notify.sendPasswordResetEmail({
+        email,
+        firstName : userData.firstname || '(User)',
+        resetGuid
+      }, mode);
+
+      if(result.error) {
+        throw new NotifyError(result.error);
+      }
+
+      // Success
+      return reply({
+        error : null,
+        data : {
+          user_id : data[0].user_id,
+          user_name : data[0].user_name,
+          reset_guid : resetGuid
+        }
+      });
+
   }
   catch(error) {
-    console.error(error);
-    reply(error).code(500);
-  }
-}
-
-
-/**
- * Method to reset password without sending Notify email
- */
-function resetPasswordQuiet(request, reply) {
-
-  /**
-   * Finds the user in the DB by email address
-   * @param {String} emailAddress
-   * @return {Promise} resolves with object containing user data
-   */
-  async function _findUser(emailAddress) {
-    const query = `select * from idm.users where lower(user_name) = lower($1)`;
-    const queryParams = [emailAddress];
-    const res = await DB.query(query, queryParams);
-    if(res.data && res.data.length==1) {
-      const {user_id, user_name, reset_guid, last_login, user_data} = res.data[0];
-      return {user_id, user_name, last_login, user_data};
+    if(error.name === 'UserNotFoundError') {
+      return reply({data : null, error}).code(404);
     }
-    throw {name : 'UserNotFoundError'};
+
+    console.log(error);
+
+    reply({
+      data : null,
+      error
+    }).code(500);
   }
 
-  /**
-   * Sets user reset GUID for user specified by email address
-   * @param {String} emailAddress
-   * @return {Promise} resolves with string containing new reset GUID
-   */
-  async function _resetPassword(emailAddress, resetRequired = false) {
-    const resetGuid = Helpers.createGUID();
-    const query = resetRequired
-       ? `update idm.users set reset_guid = $1, reset_required = 1 where lower(user_name) = lower($2)`
-       : `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`;
-
-    const queryParams = [resetGuid, emailAddress];
-    const res = await DB.query(query, queryParams);
-    if(!res.error) {
-      return resetGuid;
-    }
-    throw {name : 'ResetFailedError'};
-  }
-
-
-  async function _findAndReset(emailAddress, resetRequired) {
-    const user = await _findUser(emailAddress);
-    const reset_guid = await _resetPassword(emailAddress, resetRequired);
-    return {reset_guid, ...user};
-  }
-
-  _findAndReset(request.payload.emailAddress, request.payload.resetRequired)
-    .then((data) => {
-        reply({error : null, data});
-    })
-    .catch((error) => {
-      if(error.name === 'UserNotFoundError') {
-        return reply({error, data : null}).code(404);
-      }
-      return reply({error, data : null}).code(500);
-      console.error(error);
-    });
 }
 
 
-
-function resetPassword(request, reply) {
-  var resetGuid = Helpers.createGUID()
-  //get the user info
-  var query = `select * from idm.users where lower(user_name) = lower($1)`
-  var queryParams = [request.payload.emailAddress]
-  DB.query(query, queryParams)
-    .then((res) =>{
-      if(res.data.length == 0){
-        //console.log('email not found... shhh...')
-        // @TODO we don't want to reveal to user if account was found
-        // Check with Dave the implications of 404 here
-        return reply({err : 'User not found'}).code(404);
-      }
-      var firstname;
-      try {
-        firstname = JSON.parse(res.data[0].user_data).firstname
-      } catch (e) {
-        firstname = '(User)'
-      }
-      var query = `update idm.users set reset_guid = $1 where lower(user_name) = lower($2)`
-      var queryParams = [resetGuid, request.payload.emailAddress]
-      DB.query(query, queryParams)
-        .then((res) => {
-          Notify.sendPasswordResetEmail({
-            email: request.payload.emailAddress,
-            firstname: firstname || '(User)',
-            resetGuid: resetGuid
-          }).then((res) => {
-            console.log('notify', res);
-            return reply(res)
-          }).catch((res) => {
-            //console.log('could not send email with notify')
-            return reply(res)
-          })
-        })
-    }).catch((e) => {
-      console.log(e)
-      reply(e)
-    })
-
-}
-
-function getResetPasswordGuid(request, reply) {
-  var query = `select reset_guid from idm.users where lower(user_name) = lower($1)`
-  var queryParams = [request.query.emailAddress]
-
-  DB.query(query, queryParams)
-    .then((res) => {
-
-      if (res.err) {
-        reply(res.err).code(500)
-      } else if (!res.data || !res.data[0]) {
-        reply({
-          err: 'Reset GUID not found for user'
-        }).code(404)
-      } else {
-        reply(res.data[0])
-      }
-    })
-    .catch((e) => {
-      console.log(e);
-      reply(e);
-    })
-}
 
 function loginUser(request, reply) {
 
@@ -444,74 +268,65 @@ function resetLockCount(user){
 }
 
 
-function getUser(request, reply) {
-  // Find user by numeric ID
-  if(typeof(request.params.user_id) === 'number') {
-    var query = `select * from idm.users where user_id=$1`
-  }
-  // Find user by email address
-  else {
-      var query = `select * from idm.users where user_name=$1`
-  }
-
-  var queryParams = [request.params.user_id]
-  DB.query(query, queryParams)
-    .then((res) => {
-      if (res.err) {
-        reply(res.err).code(500)
-      } else if (!res.data || !res.data[0]) {
-        reply({
-          err: 'User not found'
-        }).code(404)
-      } else {
-        var user = res.data[0];
-        delete user.password
-        reply(user)
-      }
-
-    })
-}
-
-
+// function getUser(request, reply) {
+//   // Find user by numeric ID
+//   if(typeof(request.params.user_id) === 'number') {
+//     var query = `select * from idm.users where user_id=$1`
+//   }
+//   // Find user by email address
+//   else {
+//       var query = `select * from idm.users where user_name=$1`
+//   }
+//
+//   var queryParams = [request.params.user_id]
+//   DB.query(query, queryParams)
+//     .then((res) => {
+//       if (res.err) {
+//         reply(res.err).code(500)
+//       } else if (!res.data || !res.data[0]) {
+//         reply({
+//           err: 'User not found'
+//         }).code(404)
+//       } else {
+//         var user = res.data[0];
+//         delete user.password
+//         reply(user)
+//       }
+//
+//     })
+// }
 
 
 
-function getUsers(request, reply) {
 
-  let query = `select * from idm.users`;
-  const queryParams = [];
-
-  if(request.query.filter) {
-    const filter = JSON.parse(request.query.filter);
-
-    if(filter.reset_guid) {
-      queryParams.push(filter.reset_guid);
-      query += ` WHERE reset_guid=$1`;
-    }
-  }
-
-  DB.query(query, queryParams)
-    .then((res) => {
-      if (res.err) {
-        reply({error : res.err, data : null}).code(500)
-      }
-      else {
-        reply(res.data);
-      }
-    })
-}
+//
+// function getUsers(request, reply) {
+//
+//   let query = `select * from idm.users`;
+//   const queryParams = [];
+//
+//   if(request.query.filter) {
+//     const filter = JSON.parse(request.query.filter);
+//
+//     if(filter.reset_guid) {
+//       queryParams.push(filter.reset_guid);
+//       query += ` WHERE reset_guid=$1`;
+//     }
+//   }
+//
+//   DB.query(query, queryParams)
+//     .then((res) => {
+//       if (res.err) {
+//         reply({error : res.err, data : null}).code(500)
+//       }
+//       else {
+//         reply(res.data);
+//       }
+//     })
+// }
 
 module.exports = {
-  createUser: createUser,
-  updatePassword: updatePassword,
-  resetPassword: resetPassword,
-  resetPasswordQuiet,
-  getResetPasswordGuid: getResetPasswordGuid,
-  changePasswordWithResetLink: changePasswordWithResetLink,
-  loginUser: loginUser,
-  loginAdminUser: loginAdminUser,
-  getUser: getUser,
-  getUsers: getUsers,
-  loginError: loginError,
-  updateUser
+  loginUser,
+  loginAdminUser,
+  reset
 }
