@@ -16,8 +16,16 @@ function createUser(request, reply) {
     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
     values (lower($1),$2,$3,$4,$5,$6)`
 
+    try {
+      var user_data=JSON.parse(request.payload.user_data);
+    } catch (e) {
+      var user_data={}
+    }
+    user_data.usertype='external'
+    user_data.firstname=''
 
-    var queryParams = [request.payload.username, hashedPW, request.payload.admin, request.payload.user_data,Helpers.createGUID(),1]
+
+    var queryParams = [request.payload.username, hashedPW, request.payload.admin, user_data,Helpers.createGUID(),1]
     DB.query(query, queryParams)
       .then((res) => {
         //res.err = null if no error
