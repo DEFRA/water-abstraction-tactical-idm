@@ -11,6 +11,99 @@ function loginError(request, reply) {
   }).code(401)
 }
 
+/**
+ * Error class for if user not found
+ */
+class UserNotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UserNotFoundError';
+  }
+}
+
+class NotifyError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotifyError';
+  }
+}
+
+/**
+ * Reset password and send email
+ * Modes can be:
+ * - reset : user initiated reset process
+ * - new : new user creating an account for the first time
+ * - existing : user trying to create account, but account already exists
+ *
+ * @param {String} request.params.email - user's email address
+ * @param {String} request.query.mode - mode
+ */
+async function reset(request, reply) {
+  const mode = request.query.mode || 'reset';
+  const {email} = request.params;
+  const resetGuid = Helpers.createGUID();
+
+  // Locate user
+  // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
+  try {
+      const query = `SELECT * FROM idm.users WHERE user_name=$1`;
+      const {err, data} = await DB.query(query, [email]);
+      if(err) {
+        throw err;
+      }
+      if(data.length !== 1) {
+        throw new UserNotFoundError();
+      }
+
+      // Update user with reset guid
+      const query2 = `UPDATE idm.users SET reset_guid=$1 WHERE user_id=$2`;
+      const {err : err2} = await DB.query(query2, [resetGuid, data[0].user_id]);
+      if(err2) {
+        throw err2;
+      }
+
+      // Send password reset email
+      const userData = JSON.parse(data[0].user_data || '{}');
+      const result = await Notify.sendPasswordResetEmail({
+        email,
+        firstName : userData.firstname || '(User)',
+        resetGuid
+      }, mode);
+
+      if(result.error) {
+        throw new NotifyError(result.error);
+      }
+
+      // Success
+      return reply({
+        error : null,
+        data : {
+          user_id : data[0].user_id,
+          user_name : data[0].user_name,
+          reset_guid : resetGuid
+        }
+      });
+
+  }
+  catch(error) {
+    if(error.name === 'UserNotFoundError') {
+      return reply({data : null, error}).code(404);
+    }
+
+    console.log(error);
+
+    reply({
+      data : null,
+      error
+    }).code(500);
+  }
+
+
+
+
+}
+
+
 // function createUser(request, reply) {
 //   Helpers.createHash(request.payload.password).then((hashedPW) => {
 //     var query = `insert into idm.users (user_name,password,admin,user_data,reset_guid,reset_required)
@@ -495,5 +588,6 @@ function resetLockCount(user){
 
 module.exports = {
   loginUser,
-  loginAdminUser
+  loginAdminUser,
+  reset
 }
