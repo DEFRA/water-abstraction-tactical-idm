@@ -6,12 +6,6 @@ user_data = user_data::jsonb|| '{"usertype":"internal"}'::jsonb|| '{"usertype":"
 where user_data not like '%{first%' and user_data != '{}'
 ;
 
-update idm.users
-set
-user_data = user_data::jsonb|| '{"usertype":"internal"}'::jsonb|| '{"usertype":"internal"}'::jsonb
-where user_data not like '%{first%' and user_data != '{}'
-and user_name like '%environment-agency.gov.uk%'
-;
 
 update idm.users
 set
@@ -19,7 +13,10 @@ user_data = user_data::jsonb|| '{"usertype":"internal"}'::jsonb|| '{"usertype":"
 where user_data not like '%{first%' and user_data != '{}'
 and
 (
-user_name like '%james.carmichael%'
+user_name like '%environment-agency.gov.uk%'
+or user_name like '%defra.gsi.gov.uk%'
+or user_name like '%james.carmichael%'
+or user_name like '%dave.cozens%'
 or user_name like '%litmustest.com%'
 or user_name like '%lee.murray%'
 or user_name like '%mailinator.com%'
