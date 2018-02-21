@@ -47,9 +47,9 @@ function sendPasswordResetEmail(params, mode = 'reset') {
   const {email, resetGuid, firstName} = params;
   const personalisation = {
     firstName,
-    resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`,
-    createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}`,
-    loginUrl : `${process.env.base_url}/signin`
+    resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}&utm_source=reset_password&utm_medium=email&utm_campaign=reset_password`,
+    createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=create_password&utm_medium=email&utm_campaign=create_password`,
+    loginUrl : `${process.env.base_url}/signin?utm_source=send_login&utm_medium=email&utm_campaign=send_login`
   };
   const messageRefs = {
     reset : 'password_reset_email',
