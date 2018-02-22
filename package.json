@@ -6,7 +6,7 @@
   "scripts": {
     "heroku-prebuild": "npm install --only=dev",
     "heroku-postbuild": "gulp clean && gulp copy-govuk-files && gulp install-govuk-files && gulp copy-static-assets && gulp sass",
-    "test": "lab -t 90 -m 0",
+    "test": "snyk test && lab -t 90 -m 0",
     "test-cov-html": "lab -r html -o coverage.html"
   },
   "author": "",
@@ -23,20 +23,16 @@
     "lab": "^14.3.2",
     "mocha": "^4.1.0",
     "run-sequence": "^2.2.1",
-    "standard": "^10.0.2"
+    "standard": "^10.0.2",
+    "snyk": "^1.69.7"
   },
   "dependencies": {
     "async-waterfall": "^0.1.5",
     "bcrypt": "^1.0.3",
     "blipp": "^2.3.0",
     "boom": "^5.2.0",
-    "db-migrate": "^0.9.26",
     "db-migrate-pg": "^0.2.5",
     "dotenv": "^4.0.0",
-    "gulp": "^3.9.1",
-    "gulp-run-sequence": "^0.3.2",
-    "gulp-sass": "^3.1.0",
-    "gulp-standard": "^10.0.0",
     "handlebars": "^4.0.10",
     "handlebars-helper-equal": "^1.0.0",
     "hapi": "^16.5.0",
@@ -46,9 +42,9 @@
     "hapi-pg-rest-api": "https://github.com/DEFRA/hapi-pg-rest-api.git",
     "inert": "^4.2.1",
     "joi": "^13.1.1",
-    "jsonwebtoken": "^7.4.3",
+    "jsonwebtoken": "^8.0.0",
     "moment": "^2.20.1",
-    "node-hapi-airbrake": "0.0.6",
+    "node-hapi-airbrake-js": "https://github.com/DEFRA/node-hapi-airbrake-js.git",
     "notifications-node-client": "^3.2.0",
     "path": "^0.12.7",
     "pg": "^7.4.1",
