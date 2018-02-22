@@ -139,18 +139,14 @@ function doUserLogin(user_name,password,admin){
         if (UserRes.data[0]) {
           Helpers.compareHash(password, UserRes.data[0].password).then(() => {
             resetLockCount(UserRes.data[0]).then(()=>{
-
-            Slack.post('Login from user: *'+user_name.split('@')[0]+'* at environment: '+process.env.NODEENV).then(()=>{
-
-
               var query = `select split_part(user_name,'@',1)||'...' as id, last_login from idm.users order by last_login desc`
               DB.query(query).then((res)=>{
                 var logins=`* ${process.env.NODEENV} Login History:*`
                 for (r in res.data){
                   logins+=`\n ${res.data[r].id} ${res.data[r].last_login}`
                 }
-                console.log(logins)
-                Slack.post(logins).then(()=>{})
+                DB.query('update idm.users set last_login = current_date where user_id=$1', [UserRes.data[0].user_id]).then((res,err)=>{
+                })
                 .catch(()=>{})
                 .then(()=>{
                   resolve({
@@ -158,7 +154,7 @@ function doUserLogin(user_name,password,admin){
                     err: null,
                     reset_required: UserRes.data[0].reset_required,
                     reset_guid: UserRes.data[0].reset_guid,
-                    last_login_date:UserRes.data[0].last_login_date,
+                    last_login:UserRes.data[0].last_login,
                     bad_logins:UserRes.data[0].bad_logins,
                     user_data:UserRes.data[0].user_data
                   })
@@ -169,7 +165,7 @@ function doUserLogin(user_name,password,admin){
                 reject()
               })
 
-            })
+//            })
             })
 
           }).catch(() => {
