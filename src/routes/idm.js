@@ -29,7 +29,8 @@ module.exports = [
         email : Joi.string().email().required()
       },
       query : {
-        mode : Joi.string().valid('reset', 'new', 'existing')
+        mode : Joi.string().valid('reset', 'new', 'existing', 'sharing'),
+        sender : Joi.string().email()
       }
     },
     description : 'Reset user password and send one of a selection of reset emails'
