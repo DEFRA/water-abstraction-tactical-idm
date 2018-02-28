@@ -35,12 +35,15 @@ class NotifyError extends Error {
  * - reset : user initiated reset process
  * - new : new user creating an account for the first time
  * - existing : user trying to create account, but account already exists
+ * - sharing : a user is being invited by another user to share access
  *
  * @param {String} request.params.email - user's email address
+ * @param {String} [request.params.sender] - email address of the sender, sharing only
  * @param {String} request.query.mode - mode
  */
 async function reset(request, reply) {
   const mode = request.query.mode || 'reset';
+  const sender = request.query.sender || null;
   const {email} = request.params;
   const resetGuid = Helpers.createGUID();
 
@@ -69,7 +72,8 @@ async function reset(request, reply) {
       const result = await Notify.sendPasswordResetEmail({
         email,
         firstName : userData.firstname || '(User)',
-        resetGuid
+        resetGuid,
+        sender
       }, mode);
 
       if(result.error) {
