@@ -27,7 +27,9 @@
     "mocha": "^4.1.0",
     "run-sequence": "^2.2.1",
     "snyk": "^1.69.7",
-    "standard": "^10.0.2"
+    "standard": "^10.0.2",
+    "codecov": "^3.0.0",
+    "istanbul": "^0.4.5"
   },
   "dependencies": {
     "async-waterfall": "^0.1.5",
