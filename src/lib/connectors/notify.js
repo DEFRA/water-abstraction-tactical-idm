@@ -79,10 +79,7 @@ function sendPasswordLockEmail(params) {
 
     console.log(sendPasswordLockEmail)
     console.log(params)
-    var NotifyClient = require('notifications-node-client').NotifyClient,
-      notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
-    var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
-    var reset_url = `${process.env.reset_url}${params.resetGuid}`
+    var reset_url = `${process.env.reset_url}${params.resetGuid}}&utm_source=system&utm_medium=email&utm_campaign=account_locked`
     var personalisation = {
       reset_url: reset_url,
       firstname: params.firstname,
