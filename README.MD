@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DEFRA/water-abstraction-tactical-idm.svg?branch=master)](https://travis-ci.org/DEFRA/water-abstraction-tactical-idm)
+
 # water-abstraction-tactical-idm
 
 IDM service for the GOV.UK Water Abstraction service, using the HAPI engine for Node.js + the Handlebars view engine, with a Postgres datastore.
