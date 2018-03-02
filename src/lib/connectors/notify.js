@@ -9,10 +9,12 @@ const Water = require('./water')
  * @param {String} params.resetUrl - reset password URL including reset GUID
  * @param {String} params.createUrl- create password - new user
  * @param {String} params.firstName- user's first name
+ * @param {String} params.sender   - email address of the person sharing access
+ * @param {String} mode - the password reset mode mode
  * @return {Object} personalisation for notify
  */
 function mapNotifyPersonalisation(params, mode) {
-  const {loginUrl, resetUrl, createUrl, firstName} = params;
+  const {loginUrl, resetUrl, createUrl, shareUrl, firstName, sender} = params;
 
   if(mode === 'new') {
     return {
@@ -31,6 +33,12 @@ function mapNotifyPersonalisation(params, mode) {
       reset_url : resetUrl
     };
   }
+  if(mode === 'sharing') {
+    return {
+      link : shareUrl,
+      sender
+    };
+  }
 }
 
 
@@ -44,17 +52,20 @@ function mapNotifyPersonalisation(params, mode) {
  * @
  */
 function sendPasswordResetEmail(params, mode = 'reset') {
-  const {email, resetGuid, firstName} = params;
+  const {email, resetGuid, firstName, sender} = params;
   const personalisation = {
     firstName,
     resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=reset_password`,
     createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
-    loginUrl : `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`
+    shareUrl:  `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
+    loginUrl : `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
+    sender
   };
   const messageRefs = {
     reset : 'password_reset_email',
     new : 'new_user_verification_email',
-    existing : 'existing_user_verification_email'
+    existing : 'existing_user_verification_email',
+    sharing : 'share_new_user'
   };
   return Water.sendNotifyMessage(messageRefs[mode], email, mapNotifyPersonalisation(personalisation, mode));
 }
@@ -68,10 +79,7 @@ function sendPasswordLockEmail(params) {
 
     console.log(sendPasswordLockEmail)
     console.log(params)
-    var NotifyClient = require('notifications-node-client').NotifyClient,
-      notifyClient = new NotifyClient(process.env.NOTIFY_KEY);
-    var templateId = '985907b6-8930-4985-9d27-17369b07e22a'
-    var reset_url = `${process.env.reset_url}${params.resetGuid}`
+    var reset_url = `${process.env.reset_url}${params.resetGuid}}&utm_source=system&utm_medium=email&utm_campaign=account_locked`
     var personalisation = {
       reset_url: reset_url,
       firstname: params.firstname,
