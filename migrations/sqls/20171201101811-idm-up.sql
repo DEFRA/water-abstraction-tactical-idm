@@ -49,13 +49,7 @@ ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
 ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 
 
--- ----------------------------
--- Records of users
--- ----------------------------
-BEGIN;
-INSERT INTO "users" VALUES (9, '***REMOVED***', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
-INSERT INTO "users" VALUES (10, '***REMOVED***', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
-COMMIT;
+
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -67,3 +61,11 @@ SELECT setval('"users_user_id_seq"', 5, false);
 -- ----------------------------
 ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
 ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+
+-- ----------------------------
+-- Records of users
+-- ----------------------------
+BEGIN;
+INSERT INTO "users" VALUES (9, '***REMOVED***', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
+INSERT INTO "users" VALUES (10, '***REMOVED***', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
+COMMIT;
