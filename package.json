@@ -6,7 +6,7 @@
   "scripts": {
     "heroku-prebuild": "npm install --only=dev",
     "heroku-postbuild": "gulp clean && gulp copy-govuk-files && gulp install-govuk-files && gulp copy-static-assets && gulp sass",
-    "test": "lab -t 90 -m 0",
+    "test": "./node_modules/lab/bin/lab -t 55 -m 0 --coverage-path ./src/ --ignore r -r lcov -o lcov.info -r console -o stdout",
     "test-cov-html": "lab -r html -o coverage.html",
     "migrate": "node scripts/create-schema && node node_modules/db-migrate/bin/db-migrate up --verbose"
   },
@@ -15,6 +15,7 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
+    "codecov": "^3.0.0",
     "db-migrate": "^0.10.5",
     "db-migrate-pg": "^0.2.5",
     "del": "^3.0.0",
@@ -23,13 +24,12 @@
     "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-standard": "^10.1.2",
+    "istanbul": "^0.4.5",
     "lab": "^14.3.2",
     "mocha": "^4.1.0",
     "run-sequence": "^2.2.1",
     "snyk": "^1.69.7",
-    "standard": "^10.0.2",
-    "codecov": "^3.0.0",
-    "istanbul": "^0.4.5"
+    "standard": "^10.0.2"
   },
   "dependencies": {
     "async-waterfall": "^0.1.5",
