@@ -79,7 +79,7 @@ function sendPasswordLockEmail(params) {
 
     console.log(sendPasswordLockEmail)
     console.log(params)
-    var reset_url = `${process.env.reset_url}${params.resetGuid}}&utm_source=system&utm_medium=email&utm_campaign=account_locked`
+    var reset_url = `${process.env.reset_url}${params.resetGuid}&utm_source=system&utm_medium=email&utm_campaign=account_locked`
     var personalisation = {
       reset_url: reset_url,
       firstname: params.firstname,
