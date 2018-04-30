@@ -7,11 +7,14 @@ API operations only - NO UI
 const IDM = require('../lib/idm')
 const version = '1.0'
 const Joi = require('joi')
-
 const {pool} = require('../lib/connectors/db');
-const UsersController = require('../controllers/user')({version, pool});
+const apiConfig = {
+  pool,
+  version
+};
 
-
+const UsersController = require('../controllers/user')(apiConfig);
+const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 
 module.exports = [
   { method: 'GET', path: '/status', handler: function(request,reply){return reply('ok').code(200)}, config:{
@@ -62,5 +65,6 @@ module.exports = [
       method: '*',
       path: '/', // catch-all path
       handler: function(request,reply){reply().code(404)}
-  }
+  },
+  KpiApi.findManyRoute()
 ]
