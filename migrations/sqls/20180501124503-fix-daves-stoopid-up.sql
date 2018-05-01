@@ -1,4 +1,5 @@
 DROP VIEW if exists "idm"."kpi_view";
+CREATE VIEW "idm"."kpi_view" AS
  SELECT (x.usertype || '_registrations_completed'::text) AS datapoint,
     count(*) AS value,
     (('Registrations completed post public beta for '::text || x.usertype) || ' users'::text) AS description
