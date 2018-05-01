@@ -1,4 +1,4 @@
-DROP VIEW if exist "idm"."kpi_view";
+DROP VIEW if exists "idm"."kpi_view";
 CREATE VIEW "idm"."kpi_view" AS
 SELECT 'additional_access_grantees'::text AS datapoint,
    count(*) AS value,'Users granted access by another user' as description
