@@ -3,6 +3,7 @@
   "exclude_patterns": [
     "node_modules",
     "migrations",
-    "test"
+    "test",
+    "src/lib/logger/vendor"
   ]
 }

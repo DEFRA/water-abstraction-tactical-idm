@@ -101,27 +101,21 @@ async function reset (request, h) {
 }
 
 function loginUser (request, h) {
-  return doUserLogin(request.payload.user_name, request.payload.password, 0)
-    .then((result) => {
-      return result;
-    }).catch(() => {
-      return loginError(request, h);
-    });
+  return doUserLogin(request.payload.user_name, request.payload.password)
+    .then(result => result)
+    .catch(() => loginError(request, h));
 }
 
 function loginAdminUser (request, h) {
   console.log(`Received admin login user request for ${request.payload.user_name}`);
-  return doUserLogin(request.payload.user_name, request.payload.password, 0)
-    .then((result) => {
-      return result;
-    }).catch(() => {
-      return loginError(request, h);
-    });
+  return doUserLogin(request.payload.user_name, request.payload.password, true)
+    .then(result => result)
+    .catch(() => loginError(request, h));
 }
 
-function doUserLogin (user_name, password, admin) {
+function doUserLogin (user_name, password, isAdmin = false) {
   return new Promise((resolve, reject) => {
-    const query = admin
+    const query = isAdmin
       ? `select * from idm.users where lower(user_name)=lower($1) and admin=1`
       : `select * from idm.users where lower(user_name)=lower($1)`;
 
