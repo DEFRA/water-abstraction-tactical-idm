@@ -37,22 +37,22 @@ async function compareHash (string1, string2) {
   });
 }
 
+const createResponse = (body, statusCode = 200, error = null) => ({
+  body,
+  statusCode,
+  error
+});
+
 function makeURIRequest (uri) {
   return new Promise((resolve, reject) => {
     const options = { method: 'get', uri: uri };
     rp(options)
       .then(function (response) {
-        const responseData = {};
-        responseData.error = null;
-        responseData.statusCode = 200;
-        responseData.body = response;
+        const responseData = createResponse(response);
         resolve(responseData);
       })
       .catch(function (response) {
-        var responseData = {};
-        responseData.error = response.error;
-        responseData.statusCode = response.statusCode;
-        responseData.body = response.body;
+        const responseData = createResponse(response.body, response.statusCode, response.error);
         reject(responseData);
       });
   });
@@ -70,17 +70,11 @@ function makeURIRequestWithBody (uri, method, data) {
 
     rp(options)
       .then(function (response) {
-        const responseData = {};
-        responseData.error = null;
-        responseData.statusCode = 200;
-        responseData.body = response;
+        const responseData = createResponse(response);
         resolve(responseData);
       })
       .catch(function (response) {
-        var responseData = {};
-        responseData.error = response.error;
-        responseData.statusCode = response.statusCode;
-        responseData.body = response.body;
+        const responseData = createResponse(response.body, response.statusCode, response.error);
         reject(responseData);
       });
   });
