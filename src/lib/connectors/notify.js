@@ -1,5 +1,4 @@
-const Water = require('./water')
-
+const Water = require('./water');
 
 /**
  * @TODO remove this and make Notify emails consistent instead
@@ -13,34 +12,33 @@ const Water = require('./water')
  * @param {String} mode - the password reset mode mode
  * @return {Object} personalisation for notify
  */
-function mapNotifyPersonalisation(params, mode) {
+function mapNotifyPersonalisation (params, mode) {
   const {loginUrl, resetUrl, createUrl, shareUrl, firstName, sender} = params;
 
-  if(mode === 'new') {
+  if (mode === 'new') {
     return {
-      link : createUrl
+      link: createUrl
     };
   }
-  if(mode === 'existing') {
+  if (mode === 'existing') {
     return {
-      link : loginUrl,
-      resetLink : resetUrl
+      link: loginUrl,
+      resetLink: resetUrl
     };
   }
-  if(mode === 'reset') {
+  if (mode === 'reset') {
     return {
-      firstname : firstName,
-      reset_url : resetUrl
+      firstname: firstName,
+      reset_url: resetUrl
     };
   }
-  if(mode === 'sharing') {
+  if (mode === 'sharing') {
     return {
-      link : shareUrl,
+      link: shareUrl,
       sender
     };
   }
 }
-
 
 /**
  * Sends one of several password reset emails
@@ -51,55 +49,47 @@ function mapNotifyPersonalisation(params, mode) {
  * @return {Promise}
  * @
  */
-function sendPasswordResetEmail(params, mode = 'reset') {
+function sendPasswordResetEmail (params, mode = 'reset') {
   const {email, resetGuid, firstName, sender} = params;
   const personalisation = {
     firstName,
-    resetUrl : `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=reset_password`,
+    resetUrl: `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=reset_password`,
     createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
-    shareUrl:  `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
-    loginUrl : `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
+    shareUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
+    loginUrl: `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
     sender
   };
   const messageRefs = {
-    reset : 'password_reset_email',
-    new : 'new_user_verification_email',
-    existing : 'existing_user_verification_email',
-    sharing : 'share_new_user'
+    reset: 'password_reset_email',
+    new: 'new_user_verification_email',
+    existing: 'existing_user_verification_email',
+    sharing: 'share_new_user'
   };
   return Water.sendNotifyMessage(messageRefs[mode], email, mapNotifyPersonalisation(personalisation, mode));
 }
 
-
-
-
-function sendPasswordLockEmail(params) {
-
+function sendPasswordLockEmail (params) {
   return new Promise((resolve, reject) => {
-
-    console.log(sendPasswordLockEmail)
-    console.log(params)
-    var reset_url = `${process.env.reset_url}${params.resetGuid}&utm_source=system&utm_medium=email&utm_campaign=account_locked`
+    console.log(sendPasswordLockEmail);
+    console.log(params);
+    var resetUrl = `${process.env.reset_url}${params.resetGuid}&utm_source=system&utm_medium=email&utm_campaign=account_locked`;
     var personalisation = {
-      reset_url: reset_url,
-      firstname: params.firstname,
-    }
-    var emailAddress = params.email
+      reset_url: resetUrl,
+      firstname: params.firstname
+    };
+    var emailAddress = params.email;
     Water.sendNotifyMessage('password_locked_email', emailAddress, personalisation)
       .then((response) => {
-        console.log('notified!')
-        resolve(true)
+        console.log('notified!');
+        resolve(true);
       })
       .catch((err) => {
-        console.log('Error occurred sending notify email')
-        console.log(err.message)
-        reject(err)
+        console.log('Error occurred sending notify email');
+        console.log(err.message);
+        reject(err);
       });
   });
-
 }
-
-
 
 module.exports = {
   sendPasswordResetEmail: sendPasswordResetEmail,
