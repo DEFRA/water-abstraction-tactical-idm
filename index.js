@@ -1,118 +1,94 @@
-//provides tactical IDM API
-require('dotenv').config()
+// provides tactical IDM API
+require('dotenv').config();
 
-const Hapi = require('hapi')
+const GoodWinston = require('good-winston');
+const Hapi = require('hapi');
 
+const serverPlugins = {
+  blipp: require('blipp'),
+  hapiAuthJwt2: require('hapi-auth-jwt2'),
+  good: require('good')
+};
 
-const serverOptions = {connections: {router: {stripTrailingSlash: true}}}
-const server = new Hapi.Server(serverOptions)
-const Helpers = require('./src/lib/helpers.js')
+const config = require('./config');
+const logger = require('./src/lib/logger');
 
-server.connection({ port: process.env.PORT || 8000 })
+const goodWinstonStream = new GoodWinston({ winston: logger });
+logger.init(config.logger);
 
-if (process.env.DATABASE_URL) {
-  // get heroku db params from env vars
+const server = new Hapi.Server(config.server);
 
-  var workingVariable = process.env.DATABASE_URL.replace('postgres://', '')
-  console.log(workingVariable)
-  process.env.PGUSER = workingVariable.split('@')[0].split(':')[0]
-  process.env.PGPASSWORD = workingVariable.split('@')[0].split(':')[1]
-  process.env.PGHOST = workingVariable.split('@')[1].split(':')[0]
-  process.env.PSPORT = workingVariable.split('@')[1].split(':')[1].split('/')[0]
-  process.env.PGDATABASE = workingVariable.split('@')[1].split(':')[1].split('/')[1]
-}
+const validateJWT = (decoded, request, h) => {
+  console.log(request.url.path);
+  console.log(request.payload);
+  console.log('CALL WITH TOKEN');
+  console.log(decoded);
+  // TODO: JWT tokens to DB...
+  // do your checks to see if the person is valid
 
-const cacheKey = process.env.cacheKey || 'super-secret-cookie-encryption-key'
-console.log('Cache key' + cacheKey)
-const sessionPluginOptions = {
-  cache: { segment: 'unique-cache-sement' },
-  cookie: { isSecure: false },
-  key: 'bla-bla-bla'
-}
+  const isValid = !!decoded.id;
+  const message = isValid ? 'huzah... JWT OK' : 'boo... JWT failed';
+  console.log(message);
+  return { isValid };
+};
 
-// isSecure = true for live...
-var yar_options = {
-  storeBlank: false,
-  cookieOptions: {
-    password: 'the-password-must-be-at-least-32-characters-long',
-    isSecure: false
-  }
-}
+const cacheKey = process.env.cacheKey || 'super-secret-cookie-encryption-key';
+console.log('Cache key' + cacheKey);
 
-server.register([{
-  register: require('yar'),
-  options: yar_options
-},
-{
-    register: require('node-hapi-airbrake-js'),
+const initGood = async () => {
+  await server.register({
+    plugin: serverPlugins.good,
     options: {
-      key: process.env.errbit_key,
-      host: process.env.errbit_server
-    }
-},
-
-  {
-    // Plugin to display the routes table to console at startup
-    // See https://www.npmjs.com/package/blipp
-    register: require('blipp'),
-    options: {
-      showAuth: true
-    }
-  },
-
-  require('hapi-auth-basic'),
-  require('hapi-auth-jwt2'),
-  require('inert'),
-  require('vision')], (err) => {
-  if (err) {
-    throw err
-  }
-
-
-
-
-
-  function validateJWT(decoded, request, callback){
-    // bring your own validation function
-    console.log(request.url.path)
-    console.log(request.payload)
-      console.log('CALL WITH TOKEN')
-      console.log(decoded)
-        // TODO: JWT tokens to DB...
-        // do your checks to see if the person is valid
-      if (!decoded.id) {
-        console.log('boo... JWT failed')
-        return callback(null, false)
-      } else {
-        console.log('huzah... JWT OK')
-        return callback(null, true)
+      ...config.good,
+      reporters: {
+        winston: [goodWinstonStream]
       }
     }
+  });
+};
 
+const initBlipp = async () => {
+  await server.register({
+    plugin: serverPlugins.blipp,
+    options: config.blipp
+  });
+};
 
+const configureJwtStrategy = () => {
+  server.auth.strategy('jwt', 'jwt', {
+    key: process.env.JWT_SECRET,          // Never Share your secret key
+    validate: validateJWT,            // validate function defined above
+    verifyOptions: {}, // pick a strong algorithm
+    verify: validateJWT
+  });
 
+  server.auth.default('jwt');
+};
 
+const init = async () => {
+  initGood();
+  initBlipp();
 
-  server.auth.strategy('jwt', 'jwt',
-    { key: process.env.JWT_SECRET,          // Never Share your secret key
-      validateFunc: validateJWT,            // validate function defined above
-      verifyOptions: {}, // pick a strong algorithm
-      verifyFunc: validateJWT
-    })
+  await server.register({ plugin: serverPlugins.hapiAuthJwt2 });
 
-  server.auth.default('jwt')
+  configureJwtStrategy();
 
   // load routes
-  server.route(require('./src/routes/idm'))
-})
+  server.route(require('./src/routes/idm'));
 
-// Start the server if not testing with Lab
-if (!module.parent) {
-  server.start((err) => {
-    if (err) {
-      throw err
-    }
-    console.log(`Service ${process.env.servicename} running at: ${server.info.uri}`)
-  })
-}
-module.exports = server
+  if (!module.parent) {
+    await server.start();
+    const name = process.env.servicename;
+    const uri = server.info.uri;
+    console.log(`Service ${name} running at: ${uri}`);
+  }
+};
+
+process.on('unhandledRejection', err => {
+  console.error(err);
+  process.exit(1);
+});
+
+init();
+
+module.exports = server;
