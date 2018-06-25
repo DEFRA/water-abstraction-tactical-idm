@@ -15,11 +15,13 @@ const lab = exports.lab = Lab.script();
 const Code = require('code');
 const server = require('../index');
 
-const testEmail = 'test@example.com';
+const testEmail = 'user@example.com';
+const adminEmail = 'admin@example.com';
 const testPassword = uuidv4();
-let userId;
+const adminPassword = uuidv4();
+let userId, adminUserId;
 
-async function createTestUser () {
+async function createUser (email, password, isAdmin = false) {
   const request = {
     method: 'POST',
     url: `/idm/1.0/user`,
@@ -27,8 +29,9 @@ async function createTestUser () {
       Authorization: process.env.JWT_TOKEN
     },
     payload: {
-      user_name: testEmail,
-      password: testPassword
+      user_name: email,
+      password,
+      admin: isAdmin ? 1 : 0
     }
   };
 
@@ -41,15 +44,15 @@ async function createTestUser () {
   Code.expect(payload.error).to.equal(null);
   Code.expect(payload.data.user_id).to.be.a.number();
 
-  // Store user ID for future tests
-  userId = payload.data.user_id;
+  // Return user ID for future tests
+  return payload.data.user_id;
 }
 
-async function deleteTestUser () {
+async function deleteUser (email) {
   // Find user by email
   const request = {
     method: 'DELETE',
-    url: `/idm/1.0/user/${testEmail}`,
+    url: `/idm/1.0/user/${email}`,
     headers: {
       Authorization: process.env.JWT_TOKEN
     }
@@ -59,11 +62,14 @@ async function deleteTestUser () {
 
 lab.experiment('Test authentication API', () => {
   lab.before(async() => {
-    await deleteTestUser();
-    await createTestUser();
+    userId = await createUser(testEmail, testPassword);
+    adminUserId = await createUser(adminEmail, adminPassword, true);
   });
 
-  lab.after(deleteTestUser);
+  lab.after(async() => {
+    await deleteUser(testEmail);
+    await deleteUser(adminEmail);
+  });
 
   lab.test('The API should allow authentication with correct password', async () => {
     const request = {
@@ -88,6 +94,29 @@ lab.experiment('Test authentication API', () => {
     Code.expect(payload.user_id).to.equal(userId);
   });
 
+  lab.test('The API should allow authentication for admin user with admin account', async() => {
+    const request = {
+      method: 'POST',
+      url: `/idm/1.0/user/loginAdmin`,
+      headers: {
+        Authorization: process.env.JWT_TOKEN
+      },
+      payload: {
+        user_name: adminEmail,
+        password: adminPassword
+      }
+    };
+
+    const res = await server.inject(request);
+    Code.expect(res.statusCode).to.equal(200);
+
+    // Check payload
+    const payload = JSON.parse(res.payload);
+
+    Code.expect(payload.err).to.equal(null);
+    Code.expect(payload.user_id).to.equal(adminUserId);
+  });
+
   lab.test('The API should prevent authentication with incorrect password', async () => {
     const request = {
       method: 'POST',
@@ -98,6 +127,50 @@ lab.experiment('Test authentication API', () => {
       payload: {
         user_name: testEmail,
         password: 'wrongpass'
+      }
+    };
+
+    const res = await server.inject(request);
+    Code.expect(res.statusCode).to.equal(401);
+
+    // Check payload
+    const payload = JSON.parse(res.payload);
+
+    Code.expect(payload.err).to.not.equal(null);
+  });
+
+  lab.test('The API should prevent admin authentication with incorrect password', async () => {
+    const request = {
+      method: 'POST',
+      url: `/idm/1.0/user/loginAdmin`,
+      headers: {
+        Authorization: process.env.JWT_TOKEN
+      },
+      payload: {
+        user_name: adminEmail,
+        password: 'wrongpass'
+      }
+    };
+
+    const res = await server.inject(request);
+    Code.expect(res.statusCode).to.equal(401);
+
+    // Check payload
+    const payload = JSON.parse(res.payload);
+
+    Code.expect(payload.err).to.not.equal(null);
+  });
+
+  lab.test('The API should prevent admin authentication with non-admin account', async() => {
+    const request = {
+      method: 'POST',
+      url: `/idm/1.0/user/loginAdmin`,
+      headers: {
+        Authorization: process.env.JWT_TOKEN
+      },
+      payload: {
+        user_name: testEmail,
+        password: testPassword
       }
     };
 
