@@ -45,7 +45,8 @@ module.exports = (config = {}) => {
       last_login: Joi.string(),
       bad_logins: Joi.number(),
       date_created: Joi.string().allow(null),
-      date_updated: Joi.string().allow(null)
+      date_updated: Joi.string().allow(null),
+      application: Joi.string()
     }
   });
 };
