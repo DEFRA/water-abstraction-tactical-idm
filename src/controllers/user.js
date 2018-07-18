@@ -32,6 +32,8 @@ module.exports = (config = {}) => {
       }
       return request;
     },
+    onCreateTimestamp: 'date_created',
+    onUpdateTimestamp: 'date_updated',
     validation: {
       user_id: [Joi.number().required(), Joi.string().email().required().lowercase()],
       user_name: Joi.string().email().trim().lowercase(),
@@ -41,7 +43,9 @@ module.exports = (config = {}) => {
       reset_guid: Joi.string().guid().allow(null),
       reset_required: Joi.number(),
       last_login: Joi.string(),
-      bad_logins: Joi.number()
+      bad_logins: Joi.number(),
+      date_created: Joi.string().allow(null),
+      date_updated: Joi.string().allow(null)
     }
   });
 };
