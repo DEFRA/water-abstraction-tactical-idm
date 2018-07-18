@@ -12,7 +12,7 @@ const uuidv4 = require('uuid/v4');
 const Lab = require('lab');
 const lab = exports.lab = Lab.script();
 
-const Code = require('code');
+const { expect } = require('code');
 const server = require('../index');
 
 const testEmail = 'test@example.com';
@@ -50,13 +50,15 @@ lab.experiment('Test users API', () => {
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(201);
+    expect(res.statusCode).to.equal(201);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.error).to.equal(null);
-    Code.expect(payload.data.user_id).to.be.a.number();
+    expect(payload.error).to.equal(null);
+    expect(payload.data.user_id).to.be.a.number();
+    expect(payload.data.date_created).to.be.a.string();
+    expect(payload.data.date_updated).to.be.a.string();
 
     // Store user ID for future tests
     userId = payload.data.user_id;
@@ -72,13 +74,13 @@ lab.experiment('Test users API', () => {
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).to.equal(200);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.error).to.equal(null);
-    Code.expect(payload.data.user_name).to.equal(testEmail);
+    expect(payload.error).to.equal(null);
+    expect(payload.data.user_name).to.equal(testEmail);
   });
 
   lab.test('The API should get a user by email address', async () => {
@@ -91,13 +93,13 @@ lab.experiment('Test users API', () => {
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).to.equal(200);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.error).to.equal(null);
-    Code.expect(payload.data.user_id).to.equal(userId);
+    expect(payload.error).to.equal(null);
+    expect(payload.data.user_id).to.equal(userId);
   });
 
   lab.test('The API should get a list of users', async () => {
@@ -110,12 +112,12 @@ lab.experiment('Test users API', () => {
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).to.equal(200);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.error).to.equal(null);
-    Code.expect(payload.data).to.be.an.array();
+    expect(payload.error).to.equal(null);
+    expect(payload.data).to.be.an.array();
   });
 });
