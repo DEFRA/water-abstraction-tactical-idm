@@ -94,6 +94,28 @@ lab.experiment('Test authentication API', () => {
     Code.expect(payload.user_id).to.equal(userId);
   });
 
+  lab.test('The API should ensure passwords are case sensitive', async () => {
+    const request = {
+      method: 'POST',
+      url: `/idm/1.0/user/login`,
+      headers: {
+        Authorization: process.env.JWT_TOKEN
+      },
+      payload: {
+        user_name: testEmail,
+        password: testPassword.toUpperCase()
+      }
+    };
+
+    const res = await server.inject(request);
+    Code.expect(res.statusCode).to.equal(401);
+
+    // Check payload
+    const payload = JSON.parse(res.payload);
+
+    Code.expect(payload.err).to.not.equal(null);
+  });
+
   lab.test('The API should allow authentication for admin user with admin account', async() => {
     const request = {
       method: 'POST',

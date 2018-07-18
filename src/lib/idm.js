@@ -65,7 +65,7 @@ async function reset (request, h) {
     }
 
     // Send password reset email
-    const userData = JSON.parse(data[0].user_data || '{}');
+    const userData = data[0].user_data || {};
     const result = await Notify.sendPasswordResetEmail({
       email,
       firstName: userData.firstname || '(User)',
@@ -180,7 +180,7 @@ function increaseLockCount (user) {
 
       var firstname;
       try {
-        firstname = JSON.parse(user.user_data).firstname;
+        firstname = user.user_data.firstname;
       } catch (e) {
         console.log(`failed to get username from JSON, settings to 'User'`);
         firstname = 'User';
