@@ -1,3 +1,5 @@
+-- Create an enum representing the applications that are
+-- currently expected to use the IDM.
 drop type if exists idm.application_name;
 create type idm.application_name as enum ('water_vml', 'water_admin');
 
