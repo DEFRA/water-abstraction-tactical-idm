@@ -101,25 +101,24 @@ async function reset (request, h) {
 }
 
 function loginUser (request, h) {
-  return doUserLogin(request.payload.user_name, request.payload.password)
+  const { user_name: userName,
+    password,
+    application
+  } = request.payload;
+
+  return doUserLogin(userName, password, application)
     .then(result => result)
     .catch(() => loginError(request, h));
 }
 
-function loginAdminUser (request, h) {
-  console.log(`Received admin login user request for ${request.payload.user_name}`);
-  return doUserLogin(request.payload.user_name, request.payload.password, true)
-    .then(result => result)
-    .catch(() => loginError(request, h));
-}
-
-function doUserLogin (user_name, password, isAdmin = false) {
+function doUserLogin (userName, password, application) {
   return new Promise((resolve, reject) => {
-    const query = isAdmin
-      ? `select * from idm.users where lower(user_name)=lower($1) and admin=1`
-      : `select * from idm.users where lower(user_name)=lower($1)`;
+    const query = `select *
+      from idm.users
+      where lower(user_name) = lower($1)
+      and application = $2;`;
 
-    const queryParams = [user_name];
+    const queryParams = [userName, application];
 
     DB.query(query, queryParams)
       .then((UserRes) => {
@@ -149,7 +148,6 @@ function doUserLogin (user_name, password, isAdmin = false) {
               });
             });
           }).catch(() => {
-//            console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(() => {
               console.log('Incorrect hash');
               reject('Incorrect hash');
@@ -238,6 +236,5 @@ function resetLockCount (user) {
 
 module.exports = {
   loginUser,
-  loginAdminUser,
   reset
 };
