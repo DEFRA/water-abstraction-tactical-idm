@@ -38,7 +38,6 @@ module.exports = (config = {}) => {
       user_id: [Joi.number().required(), Joi.string().email().required().lowercase()],
       user_name: Joi.string().email().trim().lowercase(),
       password: Joi.string(),
-      admin: Joi.number(),
       user_data: Joi.object(),
       reset_guid: Joi.string().guid().allow(null),
       reset_required: Joi.number(),
