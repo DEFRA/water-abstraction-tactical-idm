@@ -60,7 +60,9 @@ lab.experiment('Test users API', () => {
     context.userId = payload.data.user_id;
   });
 
-  lab.after(deleteTestUsers);
+  lab.after(async () => {
+    await deleteTestUsers();
+  });
 
   lab.test('The API should create a user', async ({ context }) => {
     const res = await createTestUser(testEmailTwo);

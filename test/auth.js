@@ -12,66 +12,62 @@ const uuidv4 = require('uuid/v4');
 const Lab = require('lab');
 const lab = exports.lab = Lab.script();
 
-const Code = require('code');
+const { expect } = require('code');
 const server = require('../index');
 
-const testEmail = 'user@example.com';
-const adminEmail = 'admin@example.com';
-const testPassword = uuidv4();
-const adminPassword = uuidv4();
-let userId, adminUserId;
+let createdEmails = [];
 
-async function createUser (email, password, isAdmin = false) {
+async function createUser (email, password, application = 'water_vml') {
+  createdEmails.push(email);
+
   const request = {
     method: 'POST',
     url: `/idm/1.0/user`,
-    headers: {
-      Authorization: process.env.JWT_TOKEN
-    },
+    headers: { Authorization: process.env.JWT_TOKEN },
     payload: {
       user_name: email,
       password,
-      admin: isAdmin ? 1 : 0
+      application
     }
   };
 
   const res = await server.inject(request);
-  Code.expect(res.statusCode).to.equal(201);
+  expect(res.statusCode).to.equal(201);
 
   // Check payload
   const payload = JSON.parse(res.payload);
 
-  Code.expect(payload.error).to.equal(null);
-  Code.expect(payload.data.user_id).to.be.a.number();
+  expect(payload.error).to.equal(null);
+  expect(payload.data.user_id).to.be.a.number();
 
   // Return user ID for future tests
   return payload.data.user_id;
 }
 
-async function deleteUser (email) {
-  // Find user by email
-  const request = {
+async function deleteUsers () {
+  const requests = createdEmails.map(email => ({
     method: 'DELETE',
     url: `/idm/1.0/user/${email}`,
-    headers: {
-      Authorization: process.env.JWT_TOKEN
-    }
-  };
-  await server.inject(request);
+    headers: { Authorization: process.env.JWT_TOKEN }
+  })).map(request => server.inject(request));
+
+  await Promise.all(requests);
 }
 
 lab.experiment('Test authentication API', () => {
-  lab.before(async() => {
-    userId = await createUser(testEmail, testPassword);
-    adminUserId = await createUser(adminEmail, adminPassword, true);
+  lab.beforeEach(async({ context }) => {
+    createdEmails = [];
+    context.email = 'unit-test-user@example.com';
+    context.password = uuidv4();
+    context.application = 'water_vml';
+    context.userId = await createUser(context.email, context.password, context.application);
   });
 
-  lab.after(async() => {
-    await deleteUser(testEmail);
-    await deleteUser(adminEmail);
+  lab.afterEach(async() => {
+    await deleteUsers();
   });
 
-  lab.test('The API should allow authentication with correct password', async () => {
+  lab.test('The API should allow authentication with correct password', async ({ context }) => {
     const request = {
       method: 'POST',
       url: `/idm/1.0/user/login`,
@@ -79,22 +75,23 @@ lab.experiment('Test authentication API', () => {
         Authorization: process.env.JWT_TOKEN
       },
       payload: {
-        user_name: testEmail,
-        password: testPassword
+        user_name: context.email,
+        password: context.password,
+        application: context.application
       }
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(200);
+    expect(res.statusCode).to.equal(200);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.err).to.equal(null);
-    Code.expect(payload.user_id).to.equal(userId);
+    expect(payload.err).to.equal(null);
+    expect(payload.user_id).to.equal(context.userId);
   });
 
-  lab.test('The API should ensure passwords are case sensitive', async () => {
+  lab.test('The API should ensure passwords are case sensitive', async ({ context }) => {
     const request = {
       method: 'POST',
       url: `/idm/1.0/user/login`,
@@ -102,44 +99,29 @@ lab.experiment('Test authentication API', () => {
         Authorization: process.env.JWT_TOKEN
       },
       payload: {
-        user_name: testEmail,
-        password: testPassword.toUpperCase()
+        user_name: context.email,
+        password: context.password.toUpperCase(),
+        application: context.application
       }
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(401);
+    expect(res.statusCode).to.equal(401);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.err).to.not.equal(null);
+    expect(payload.err).to.not.equal(null);
   });
 
   lab.test('The API should allow authentication for admin user with admin account', async() => {
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/loginAdmin`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
-      payload: {
-        user_name: adminEmail,
-        password: adminPassword
-      }
-    };
+    // create a water_admin user
+    const email = 'unit-test-admin@example.com';
+    const password = uuidv4();
+    const application = 'water_admin';
 
-    const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(200);
+    const userId = await createUser(email, password, application);
 
-    // Check payload
-    const payload = JSON.parse(res.payload);
-
-    Code.expect(payload.err).to.equal(null);
-    Code.expect(payload.user_id).to.equal(adminUserId);
-  });
-
-  lab.test('The API should prevent authentication with incorrect password', async () => {
     const request = {
       method: 'POST',
       url: `/idm/1.0/user/login`,
@@ -147,61 +129,63 @@ lab.experiment('Test authentication API', () => {
         Authorization: process.env.JWT_TOKEN
       },
       payload: {
-        user_name: testEmail,
-        password: 'wrongpass'
+        user_name: email,
+        password,
+        application
       }
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(401);
+    expect(res.statusCode).to.equal(200);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.err).to.not.equal(null);
+    expect(payload.err).to.equal(null);
+    expect(payload.user_id).to.equal(userId);
   });
 
-  lab.test('The API should prevent admin authentication with incorrect password', async () => {
+  lab.test('The API should prevent authentication with incorrect password', async ({ context }) => {
     const request = {
       method: 'POST',
-      url: `/idm/1.0/user/loginAdmin`,
+      url: `/idm/1.0/user/login`,
       headers: {
         Authorization: process.env.JWT_TOKEN
       },
       payload: {
-        user_name: adminEmail,
-        password: 'wrongpass'
+        user_name: context.email,
+        password: 'wrongpass',
+        application: context.application
       }
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(401);
+    expect(res.statusCode).to.equal(401);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.err).to.not.equal(null);
+    expect(payload.err).to.not.equal(null);
   });
 
-  lab.test('The API should prevent admin authentication with non-admin account', async() => {
+  lab.test('A user cannot use credentials for a different application', async({ context }) => {
     const request = {
       method: 'POST',
-      url: `/idm/1.0/user/loginAdmin`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
+      url: `/idm/1.0/user/login`,
+      headers: { Authorization: process.env.JWT_TOKEN },
       payload: {
-        user_name: testEmail,
-        password: testPassword
+        user_name: context.email,
+        password: context.password,
+        application: 'water_admin'
       }
     };
 
     const res = await server.inject(request);
-    Code.expect(res.statusCode).to.equal(401);
+    expect(res.statusCode).to.equal(401);
 
     // Check payload
     const payload = JSON.parse(res.payload);
 
-    Code.expect(payload.err).to.not.equal(null);
+    expect(payload.err).to.not.equal(null);
   });
 });
