@@ -42,14 +42,18 @@ class NotifyError extends Error {
 async function reset (request, h) {
   const mode = request.query.mode || 'reset';
   const sender = request.query.sender || null;
-  const {email} = request.params;
+  const { application, email } = request.params;
   const resetGuid = uuidv4();
 
   // Locate user
   // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
   try {
-    const query = `SELECT * FROM idm.users WHERE LOWER(user_name)=LOWER($1)`;
-    const { err, data } = await DB.query(query, [email]);
+    const query = `
+      select * from idm.users
+      where lower(user_name) = LOWER($1)
+      and application = $2`;
+
+    const { err, data } = await DB.query(query, [email, application]);
     if (err) {
       throw err;
     }
@@ -88,7 +92,7 @@ async function reset (request, h) {
     };
   } catch (error) {
     if (error.name === 'UserNotFoundError') {
-      return h.response({data: null, error}).code(404);
+      return h.response({ data: null, error }).code(404);
     }
 
     console.log(error);

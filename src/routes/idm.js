@@ -24,12 +24,13 @@ module.exports = [
   ...UsersController.getRoutes(),
   {
     method: 'PATCH',
-    path: '/idm/' + version + '/reset/{email}',
+    path: '/idm/' + version + '/reset/{application}/{email}',
     handler: IDM.reset,
     options: {
       validate: {
         params: {
-          email: Joi.string().email().required()
+          email: Joi.string().email().required(),
+          application: Joi.string().required()
         },
         query: {
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
