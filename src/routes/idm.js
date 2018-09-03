@@ -24,12 +24,13 @@ module.exports = [
   ...UsersController.getRoutes(),
   {
     method: 'PATCH',
-    path: '/idm/' + version + '/reset/{email}',
+    path: '/idm/' + version + '/reset/{application}/{email}',
     handler: IDM.reset,
     options: {
       validate: {
         params: {
-          email: Joi.string().email().required()
+          email: Joi.string().email().required(),
+          application: Joi.string().required()
         },
         query: {
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
@@ -44,25 +45,12 @@ module.exports = [
     path: '/idm/' + version + '/user/login',
     handler: IDM.loginUser,
     options: {
-      description: 'Login for non-admin users, responds with user details',
+      description: 'Login users, responds with user details',
       validate: {
         payload: {
           user_name: Joi.string().required(),
-          password: Joi.string().required()
-        }
-      }
-    }
-  },
-  {
-    method: 'POST',
-    path: '/idm/' + version + '/user/loginAdmin',
-    handler: IDM.loginAdminUser,
-    options: {
-      description: 'Login for admin users, responds with user details',
-      validate: {
-        payload: {
-          user_name: Joi.string().required(),
-          password: Joi.string().required()
+          password: Joi.string().required(),
+          application: Joi.string().required()
         }
       }
     }

@@ -42,14 +42,18 @@ class NotifyError extends Error {
 async function reset (request, h) {
   const mode = request.query.mode || 'reset';
   const sender = request.query.sender || null;
-  const {email} = request.params;
+  const { application, email } = request.params;
   const resetGuid = uuidv4();
 
   // Locate user
   // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
   try {
-    const query = `SELECT * FROM idm.users WHERE LOWER(user_name)=LOWER($1)`;
-    const { err, data } = await DB.query(query, [email]);
+    const query = `
+      select * from idm.users
+      where lower(user_name) = LOWER($1)
+      and application = $2`;
+
+    const { err, data } = await DB.query(query, [email, application]);
     if (err) {
       throw err;
     }
@@ -88,7 +92,7 @@ async function reset (request, h) {
     };
   } catch (error) {
     if (error.name === 'UserNotFoundError') {
-      return h.response({data: null, error}).code(404);
+      return h.response({ data: null, error }).code(404);
     }
 
     console.log(error);
@@ -101,25 +105,24 @@ async function reset (request, h) {
 }
 
 function loginUser (request, h) {
-  return doUserLogin(request.payload.user_name, request.payload.password)
+  const { user_name: userName,
+    password,
+    application
+  } = request.payload;
+
+  return doUserLogin(userName, password, application)
     .then(result => result)
     .catch(() => loginError(request, h));
 }
 
-function loginAdminUser (request, h) {
-  console.log(`Received admin login user request for ${request.payload.user_name}`);
-  return doUserLogin(request.payload.user_name, request.payload.password, true)
-    .then(result => result)
-    .catch(() => loginError(request, h));
-}
-
-function doUserLogin (user_name, password, isAdmin = false) {
+function doUserLogin (userName, password, application) {
   return new Promise((resolve, reject) => {
-    const query = isAdmin
-      ? `select * from idm.users where lower(user_name)=lower($1) and admin=1`
-      : `select * from idm.users where lower(user_name)=lower($1)`;
+    const query = `select *
+      from idm.users
+      where lower(user_name) = lower($1)
+      and application = $2;`;
 
-    const queryParams = [user_name];
+    const queryParams = [userName, application];
 
     DB.query(query, queryParams)
       .then((UserRes) => {
@@ -149,7 +152,6 @@ function doUserLogin (user_name, password, isAdmin = false) {
               });
             });
           }).catch(() => {
-//            console.log('rejected for incorect hash')
             increaseLockCount(UserRes.data[0]).then(() => {
               console.log('Incorrect hash');
               reject('Incorrect hash');
@@ -238,6 +240,5 @@ function resetLockCount (user) {
 
 module.exports = {
   loginUser,
-  loginAdminUser,
   reset
 };
