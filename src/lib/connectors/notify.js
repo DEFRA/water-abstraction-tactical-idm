@@ -53,7 +53,7 @@ function sendPasswordResetEmail (params, mode = 'reset') {
   const {email, resetGuid, firstName, sender} = params;
   const personalisation = {
     firstName,
-    resetUrl: `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=reset_password`,
+    resetUrl: `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`,
     createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
     shareUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
     loginUrl: `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
@@ -72,7 +72,7 @@ function sendPasswordLockEmail (params) {
   return new Promise((resolve, reject) => {
     console.log(sendPasswordLockEmail);
     console.log(params);
-    var resetUrl = `${process.env.reset_url}${params.resetGuid}&utm_source=system&utm_medium=email&utm_campaign=account_locked`;
+    var resetUrl = `${process.env.reset_url}${params.resetGuid}`;
     var personalisation = {
       reset_url: resetUrl,
       firstname: params.firstname
