@@ -54,6 +54,30 @@ async function deleteUsers () {
   await Promise.all(requests);
 }
 
+async function getUser (userId) {
+  const request = {
+    method: 'GET',
+    url: `/idm/1.0/user/${userId}`,
+    headers: { Authorization: process.env.JWT_TOKEN }
+  };
+
+  const res = await server.inject(request);
+  return res.result.data;
+}
+
+const buildRequest = (email, password, application) => ({
+  method: 'POST',
+  url: `/idm/1.0/user/login`,
+  headers: {
+    Authorization: process.env.JWT_TOKEN
+  },
+  payload: {
+    user_name: email,
+    password,
+    application
+  }
+});
+
 lab.experiment('Test authentication API', () => {
   lab.beforeEach(async({ context }) => {
     createdEmails = [];
@@ -68,19 +92,8 @@ lab.experiment('Test authentication API', () => {
   });
 
   lab.test('The API should allow authentication with correct password', async ({ context }) => {
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/login`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
-      payload: {
-        user_name: context.email,
-        password: context.password,
-        application: context.application
-      }
-    };
-
+    const { email, password, application } = context;
+    const request = buildRequest(email, password, application);
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(200);
 
@@ -92,18 +105,8 @@ lab.experiment('Test authentication API', () => {
   });
 
   lab.test('The API should ensure passwords are case sensitive', async ({ context }) => {
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/login`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
-      payload: {
-        user_name: context.email,
-        password: context.password.toUpperCase(),
-        application: context.application
-      }
-    };
+    const { email, password, application } = context;
+    const request = buildRequest(email, password.toUpperCase(), application);
 
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
@@ -122,18 +125,7 @@ lab.experiment('Test authentication API', () => {
 
     const userId = await createUser(email, password, application);
 
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/login`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
-      payload: {
-        user_name: email,
-        password,
-        application
-      }
-    };
+    const request = buildRequest(email, password, application);
 
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(200);
@@ -146,40 +138,25 @@ lab.experiment('Test authentication API', () => {
   });
 
   lab.test('The API should prevent authentication with incorrect password', async ({ context }) => {
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/login`,
-      headers: {
-        Authorization: process.env.JWT_TOKEN
-      },
-      payload: {
-        user_name: context.email,
-        password: 'wrongpass',
-        application: context.application
-      }
-    };
-
+    const request = buildRequest(context.email, 'wrongpass', context.application);
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
 
     // Check payload
     const payload = JSON.parse(res.payload);
-
     expect(payload.err).to.not.equal(null);
   });
 
-  lab.test('A user cannot use credentials for a different application', async({ context }) => {
-    const request = {
-      method: 'POST',
-      url: `/idm/1.0/user/login`,
-      headers: { Authorization: process.env.JWT_TOKEN },
-      payload: {
-        user_name: context.email,
-        password: context.password,
-        application: 'water_admin'
-      }
-    };
+  lab.test('bad_logins is incremented on failed auth attempt', async ({ context }) => {
+    const request = buildRequest(context.email, 'wrongpass', context.application);
+    await server.inject(request);
 
+    const user = await getUser(context.userId);
+    expect(user.bad_logins).to.equal('1');
+  });
+
+  lab.test('A user cannot use credentials for a different application', async({ context }) => {
+    const request = buildRequest(context.email, context.password, 'water_admin');
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
 
