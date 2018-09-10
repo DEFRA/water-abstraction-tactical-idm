@@ -19,21 +19,13 @@ function createHash (string) {
 }
 
 async function compareHash (string1, string2) {
-  console.log(string1, string2);
-  console.log('Hash should be', await createHash(string1));
-
   return new Promise((resolve, reject) => {
-    try {
-      bcrypt.compare(string1, string2, (err, res) => {
-        if (res) {
-          resolve(200);
-        } else {
-          reject(400);
-        }
-      });
-    } catch (e) {
-      resolve(500);
-    }
+    bcrypt.compare(string1, string2, (err, res) => {
+      if (err || !res) {
+        return reject(new Error(400));
+      }
+      return resolve(200);
+    });
   });
 }
 

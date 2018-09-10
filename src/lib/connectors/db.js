@@ -9,26 +9,24 @@ pool.on('acquire', () => {
   }
 });
 
-function promiseQuery (queryString, params) {
-  return new Promise((resolve, reject) => {
-    query(queryString, params, (res) => {
-      resolve(res);
-    });
-  });
-}
-
-function query (queryString, params, cb) {
-  pool.query(queryString, params)
-    .then((res) => {
-      cb({data: res.rows, error: null});
-    }) // brianc
+function query (queryString, params) {
+  return pool.query(queryString, params)
+    .then(res => {
+      return {
+        data: res.rows,
+        error: null
+      };
+    })
     .catch(err => {
       const {stack, code} = err;
-      cb({error: {stack, code}, data: null});
+      return {
+        error: { stack, code },
+        data: null
+      };
     });
 }
 
 module.exports = {
-  query: promiseQuery,
+  query,
   pool
 };
