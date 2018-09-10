@@ -158,7 +158,7 @@ async function doUserLogin (userName, password, application) {
 }
 
 function increaseLockCount (user) {
-  const badLogins = parseInt(get(user, 'badLogins', 0));
+  const badLogins = parseInt(get(user, 'bad_logins', 0));
   const loginCount = isFinite(badLogins) ? badLogins + 1 : 1;
 
   if (loginCount === 10) {
