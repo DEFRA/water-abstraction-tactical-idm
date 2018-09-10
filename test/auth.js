@@ -150,9 +150,10 @@ lab.experiment('Test authentication API', () => {
   lab.test('bad_logins is incremented on failed auth attempt', async ({ context }) => {
     const request = buildRequest(context.email, 'wrongpass', context.application);
     await server.inject(request);
+    await server.inject(request);
 
     const user = await getUser(context.userId);
-    expect(user.bad_logins).to.equal('1');
+    expect(user.bad_logins).to.equal('2');
   });
 
   lab.test('A user cannot use credentials for a different application', async({ context }) => {
