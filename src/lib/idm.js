@@ -2,6 +2,7 @@ const Helpers = require('./helpers');
 const DB = require('./connectors/db');
 const Notify = require('./connectors/notify');
 const uuidv4 = require('uuid/v4');
+const { isFinite, parseInt, get } = require('lodash');
 
 function loginError (request, h) {
   return h.response({
@@ -48,12 +49,8 @@ async function reset (request, h) {
   // Locate user
   // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
   try {
-    const query = `
-      select * from idm.users
-      where lower(user_name) = LOWER($1)
-      and application = $2`;
+    const { err, data } = await getUserByUsername(email, application);
 
-    const { err, data } = await DB.query(query, [email, application]);
     if (err) {
       throw err;
     }
@@ -115,128 +112,105 @@ function loginUser (request, h) {
     .catch(() => loginError(request, h));
 }
 
-function doUserLogin (userName, password, application) {
-  return new Promise((resolve, reject) => {
-    const query = `select *
-      from idm.users
-      where lower(user_name) = lower($1)
-      and application = $2;`;
+async function getUserByUsername (userName, application) {
+  const query = `
+    select *
+    from idm.users
+    where lower(user_name) = lower($1)
+    and application = $2;`;
 
-    const queryParams = [userName, application];
+  return DB.query(query, [userName, application]);
+}
 
-    DB.query(query, queryParams)
-      .then((UserRes) => {
-        // admin login query result
-        if (UserRes.data[0]) {
-          Helpers.compareHash(password, UserRes.data[0].password).then(() => {
-            resetLockCount(UserRes.data[0]).then(() => {
-              var query = `select split_part(user_name,'@',1)||'...' as id, last_login from idm.users order by last_login desc`;
-              DB.query(query).then((res) => {
-                DB.query('update idm.users set last_login = current_date where user_id=$1', [UserRes.data[0].user_id]).then((res, err) => {
-                })
-                .catch(() => {})
-                .then(() => {
-                  resolve({
-                    user_id: UserRes.data[0].user_id,
-                    err: null,
-                    reset_required: UserRes.data[0].reset_required,
-                    reset_guid: UserRes.data[0].reset_guid,
-                    last_login: UserRes.data[0].last_login,
-                    bad_logins: UserRes.data[0].bad_logins,
-                    user_data: UserRes.data[0].user_data
-                  });
-                });
-              }).catch((err) => {
-                console.log(err);
-                reject();
+async function doUserLogin (userName, password, application) {
+  return getUserByUsername(userName, application)
+    .then((userResponse) => {
+      const user = userResponse.data[0] || null;
+
+      if (user) {
+        return Helpers.compareHash(password, user.password)
+          .then(() => {
+            updateAuthenticatedUser(user);
+            return {
+              user_id: user.user_id,
+              err: null,
+              reset_required: user.reset_required,
+              reset_guid: user.reset_guid,
+              last_login: user.last_login,
+              bad_logins: user.bad_logins,
+              user_data: user.user_data
+            };
+          })
+          .catch(() => {
+            return increaseLockCount(user)
+              .then(() => {
+                return Promise.reject(new Error('Incorrect hash'));
               });
-            });
-          }).catch(() => {
-            increaseLockCount(UserRes.data[0]).then(() => {
-              console.log('Incorrect hash');
-              reject('Incorrect hash');
-            }).catch(() => {
-              console.log('Incorrect hash & notify email failed');
-              reject('Incorrect hash & notify email failed');
-            });
           });
-        } else {
-          console.log('rejected for incorrect email');
-          reject('Incorrect login');
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        reject('Database error');
-      });
-  });
+      } else {
+        return Promise.reject(new Error('Incorrect login email'));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      return Promise.reject(err);
+    });
 }
 
 function increaseLockCount (user) {
-  return new Promise((resolve, reject) => {
-    let loginCount = user.bad_logins || 1;
-    loginCount++;
+  const badLogins = parseInt(get(user, 'bad_logins', 0));
+  const loginCount = isFinite(badLogins) ? badLogins + 1 : 1;
 
-    if (loginCount === 10) {
-      const resetGuid = uuidv4();
+  if (loginCount === 10) {
+    const resetGuid = uuidv4();
 
-      var firstname;
-      try {
-        firstname = user.user_data.firstname;
-      } catch (e) {
-        console.log(`failed to get username from JSON, settings to 'User'`);
-        firstname = 'User';
-      }
+    const promises = [
+      updateBadLoginsAndResetPassword(user.user_id, loginCount, resetGuid),
       Notify.sendPasswordLockEmail({
         email: user.user_name,
-        firstname: firstname,
-        resetGuid: resetGuid
-      }).then((res) => {
-//        console.log('sent email with notify')
-      }).catch((res) => {
-//        console.log('could not send email with notify')
-      }).then(() => {
-        const queryParams = [user.user_id, loginCount, resetGuid];
-        const query = `update idm.users set password='VOID',reset_guid=$3,bad_logins=$2 where user_id=$1`;
-        DB.query(query, queryParams)
-          .then((res) => {
-            resolve();
-          })
-          .catch((err) => {
-            console.log(err);
-            reject();
-          });
-      });
-    } else if (loginCount > 10) {
-      const queryParams = [user.user_id, loginCount];
-      const query = `update idm.users set bad_logins=$2 where user_id=$1`;
-      DB.query(query, queryParams).then((res) => {
-        resolve();
-      }).catch(() => {
-        reject();
-      });
-    } else {
-      var query = `update idm.users set bad_logins=$2 where user_id=$1`;
-      var queryParams = [user.user_id, loginCount];
-      DB.query(query, queryParams)
-        .then((res) => {
-          resolve();
-        }).catch(() => {
-          reject();
-        });
-    }
-  });
+        firstname: get(user, 'user_data.firstname', 'User'),
+        resetGuid
+      })
+    ];
+
+    return Promise.all(promises);
+  }
+
+  return updateBadLogins(user.user_id, loginCount);
 }
 
-function resetLockCount (user) {
-  return new Promise((resolve, reject) => {
-    var query = `update idm.users set bad_logins=0,last_login=clock_timestamp()  where user_id=$1`;
-    var queryParams = [user.user_id];
-    DB.query(query, queryParams)
-      .then(res => resolve())
-      .catch(() => reject());
-  });
-}
+const updateBadLogins = (userID, loginCount) => {
+  const query = `
+    update idm.users
+    set bad_logins = $2,
+    date_updated = now()
+    where user_id = $1`;
+
+  return DB.query(query, [userID, loginCount]);
+};
+
+const updateBadLoginsAndResetPassword = (userID, loginCount, resetGuid) => {
+  const query = `
+    update idm.users
+    set password = 'VOID',
+    reset_guid = $3,
+    bad_logins = $2,
+    date_updated = now()
+    where user_id = $1`;
+
+  return DB.query(query, [userID, loginCount, resetGuid]);
+};
+
+const updateAuthenticatedUser = user => {
+  const query = `
+    update idm.users
+    set bad_logins = 0,
+    last_login = now(),
+    date_updated = now()
+    where user_id = $1;`;
+
+  return DB.query(query, [user.user_id]);
+};
 
 module.exports = {
   loginUser,
