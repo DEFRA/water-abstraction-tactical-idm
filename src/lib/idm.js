@@ -2,7 +2,7 @@ const Helpers = require('./helpers');
 const DB = require('./connectors/db');
 const Notify = require('./connectors/notify');
 const uuidv4 = require('uuid/v4');
-const { isFinite, parseInt, get } = require('lodash');
+const { isFinite, parseInt, get, pick } = require('lodash');
 
 function loginError (request, h) {
   return h.response({
@@ -131,14 +131,10 @@ async function doUserLogin (userName, password, application) {
         return Helpers.compareHash(password, user.password)
           .then(() => {
             updateAuthenticatedUser(user);
+
             return {
-              user_id: user.user_id,
-              err: null,
-              reset_required: user.reset_required,
-              reset_guid: user.reset_guid,
-              last_login: user.last_login,
-              bad_logins: user.bad_logins,
-              user_data: user.user_data
+              ...pick(user, ['user_id', 'reset_required', 'reset_guid', 'last_login', 'bad_logins', 'user_data', 'user_name']),
+              err: null
             };
           })
           .catch(() => {
