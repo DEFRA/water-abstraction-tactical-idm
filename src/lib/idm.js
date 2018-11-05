@@ -92,7 +92,7 @@ async function reset (request, h) {
       return h.response({ data: null, error }).code(404);
     }
 
-    console.log(error);
+    request.log('error', error);
 
     return h.response({
       data: null,
@@ -148,7 +148,6 @@ async function doUserLogin (userName, password, application) {
       }
     })
     .catch(err => {
-      console.error(err);
       return Promise.reject(err);
     });
 }
