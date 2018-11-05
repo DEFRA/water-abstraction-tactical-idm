@@ -1,4 +1,5 @@
 const Water = require('./water');
+const logger = require('../logger');
 
 /**
  * @TODO remove this and make Notify emails consistent instead
@@ -70,8 +71,8 @@ function sendPasswordResetEmail (params, mode = 'reset') {
 
 function sendPasswordLockEmail (params) {
   return new Promise((resolve, reject) => {
-    console.log(sendPasswordLockEmail);
-    console.log(params);
+    logger.info(sendPasswordLockEmail);
+    logger.info(params);
     var resetUrl = `${process.env.reset_url}${params.resetGuid}`;
     var personalisation = {
       reset_url: resetUrl,
@@ -80,12 +81,11 @@ function sendPasswordLockEmail (params) {
     var emailAddress = params.email;
     Water.sendNotifyMessage('password_locked_email', emailAddress, personalisation)
       .then((response) => {
-        console.log('notified!');
         resolve(true);
       })
       .catch((err) => {
-        console.log('Error occurred sending notify email');
-        console.log(err.message);
+        logger.error('Error occurred sending notify email');
+        logger.error(err.message);
         reject(err);
       });
   });

@@ -1,21 +1,20 @@
 const Helpers = require('../helpers');
+const logger = require('../logger');
 
 function sendNotifyMessage (messageRef, recipient, personalisation) {
   return new Promise((resolve, reject) => {
-    var uri = `${process.env.WATER_URI}/notify/${messageRef}?token=${process.env.JWT_TOKEN}`;
-    var requestBody = {
+    const uri = `${process.env.WATER_URI}/notify/${messageRef}?token=${process.env.JWT_TOKEN}`;
+    const requestBody = {
       recipient: recipient,
       personalisation: personalisation
     };
-    Helpers.makeURIRequestWithBody(
-        uri,
-        'post',
-        requestBody)
+
+    Helpers.makeURIRequestWithBody(uri, 'post', requestBody)
       .then((response) => {
-        var data = response.body;
+        const data = response.body;
         resolve(data);
       }).catch((response) => {
-        console.log(response);
+        logger.error(response);
         resolve(response);
       });
   });

@@ -3,10 +3,12 @@ const rp = require('request-promise-native').defaults({
   strictSSL: false
 });
 
+const logger = require('./logger');
+
 function post (message) {
   return new Promise((resolve, reject) => {
     var uri = 'https://hooks.slack.com/services/' + process.env.slackhook;
-    console.log(uri);
+    logger.info(uri);
     var options = {
       method: 'POST',
       url: uri,
