@@ -71,7 +71,6 @@ function sendPasswordResetEmail (params, mode = 'reset') {
 
 function sendPasswordLockEmail (params) {
   return new Promise((resolve, reject) => {
-    logger.info(sendPasswordLockEmail);
     logger.info(params);
     var resetUrl = `${process.env.reset_url}${params.resetGuid}`;
     var personalisation = {
