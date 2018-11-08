@@ -40,6 +40,7 @@ module.exports = (config = {}) => {
       password: Joi.string(),
       user_data: Joi.object(),
       reset_guid: Joi.string().guid().allow(null),
+      reset_guid_date_created: Joi.string().allow(null),
       reset_required: Joi.number(),
       last_login: Joi.string(),
       bad_logins: Joi.number(),
