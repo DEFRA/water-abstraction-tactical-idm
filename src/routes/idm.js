@@ -8,6 +8,7 @@ const apiConfig = {
   version
 };
 
+const resetController = require('../controllers/reset');
 const UsersController = require('../controllers/user')(apiConfig);
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 
@@ -25,7 +26,7 @@ module.exports = [
   {
     method: 'PATCH',
     path: '/idm/' + version + '/reset/{application}/{email}',
-    handler: IDM.reset,
+    handler: resetController.resetPassword,
     options: {
       validate: {
         params: {
