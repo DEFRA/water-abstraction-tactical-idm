@@ -11,96 +11,6 @@ function loginError (request, h) {
   }).code(401);
 }
 
-/**
- * Error class for if user not found
- */
-class UserNotFoundError extends Error {
-  constructor (message) {
-    super(message);
-    this.name = 'UserNotFoundError';
-  }
-}
-
-class NotifyError extends Error {
-  constructor (message) {
-    super(message);
-    this.name = 'NotifyError';
-  }
-}
-
-/**
- * Reset password and send email
- * Modes can be:
- * - reset : user initiated reset process
- * - new : new user creating an account for the first time
- * - existing : user trying to create account, but account already exists
- * - sharing : a user is being invited by another user to share access
- *
- * @param {String} request.params.email - user's email address
- * @param {String} [request.params.sender] - email address of the sender, sharing only
- * @param {String} request.query.mode - mode
- */
-async function reset (request, h) {
-  const mode = request.query.mode || 'reset';
-  const sender = request.query.sender || null;
-  const { application, email } = request.params;
-  const resetGuid = uuidv4();
-
-  // Locate user
-  // @TODO hapi-pg-rest-api would be cleaner if hapi-pg-rest-api exposed DB interaction layer
-  try {
-    const { err, data } = await getUserByUsername(email, application);
-
-    if (err) {
-      throw err;
-    }
-    if (data.length !== 1) {
-      throw new UserNotFoundError();
-    }
-
-    // Update user with reset guid
-    const query2 = `UPDATE idm.users SET reset_guid=$1 WHERE user_id=$2`;
-    const { err: err2 } = await DB.query(query2, [resetGuid, data[0].user_id]);
-    if (err2) {
-      throw err2;
-    }
-
-    // Send password reset email
-    const userData = data[0].user_data || {};
-    const result = await Notify.sendPasswordResetEmail({
-      email,
-      firstName: userData.firstname || '(User)',
-      resetGuid,
-      sender
-    }, mode);
-
-    if (result.error) {
-      throw new NotifyError(result.error);
-    }
-
-    // Success
-    return {
-      error: null,
-      data: {
-        user_id: data[0].user_id,
-        user_name: data[0].user_name,
-        reset_guid: resetGuid
-      }
-    };
-  } catch (error) {
-    if (error.name === 'UserNotFoundError') {
-      return h.response({ data: null, error }).code(404);
-    }
-
-    console.log(error);
-
-    return h.response({
-      data: null,
-      error
-    }).code(500);
-  }
-}
-
 function loginUser (request, h) {
   const { user_name: userName,
     password,
@@ -148,7 +58,6 @@ async function doUserLogin (userName, password, application) {
       }
     })
     .catch(err => {
-      console.error(err);
       return Promise.reject(err);
     });
 }
@@ -208,7 +117,17 @@ const updateAuthenticatedUser = user => {
   return DB.query(query, [user.user_id]);
 };
 
+const updateResetGuid = (userID, guid) => {
+  const query = `
+    update idm.users
+    set reset_guid = $2, reset_guid_date_created = now()
+    where user_id = $1;`;
+
+  return DB.query(query, [userID, guid]);
+};
+
 module.exports = {
   loginUser,
-  reset
+  updateResetGuid,
+  getUserByUsername
 };

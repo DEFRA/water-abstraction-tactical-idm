@@ -19,21 +19,18 @@ logger.init(config.logger);
 const server = new Hapi.Server(config.server);
 
 const validateJWT = (decoded, request, h) => {
-  console.log(request.url.path);
-  console.log(request.payload);
-  console.log('CALL WITH TOKEN');
-  console.log(decoded);
+  logger.info(request.url.path);
+  logger.info(request.payload);
+  logger.info('CALL WITH TOKEN');
+  logger.info(decoded);
   // TODO: JWT tokens to DB...
   // do your checks to see if the person is valid
 
   const isValid = !!decoded.id;
   const message = isValid ? 'huzah... JWT OK' : 'boo... JWT failed';
-  console.log(message);
+  logger.info(message);
   return { isValid };
 };
-
-const cacheKey = process.env.cacheKey || 'super-secret-cookie-encryption-key';
-console.log('Cache key' + cacheKey);
 
 const initGood = async () => {
   await server.register({
@@ -80,12 +77,12 @@ const init = async () => {
     await server.start();
     const name = process.env.servicename;
     const uri = server.info.uri;
-    console.log(`Service ${name} running at: ${uri}`);
+    server.log('info', `Service ${name} running at: ${uri}`);
   }
 };
 
 process.on('unhandledRejection', err => {
-  console.error(err);
+  logger.error(err);
   process.exit(1);
 });
 
