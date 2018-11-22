@@ -7,7 +7,7 @@ const logger = require('./logger');
 
 function post (message) {
   return new Promise((resolve, reject) => {
-    var uri = 'https://hooks.slack.com/services/' + process.env.slackhook;
+    var uri = 'https://hooks.slack.com/services/' + process.env.SLACK_HOOK;
     logger.info(uri);
     var options = {
       method: 'POST',
