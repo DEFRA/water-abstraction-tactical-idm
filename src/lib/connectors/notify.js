@@ -1,6 +1,10 @@
 const Water = require('./water');
 const logger = require('../logger');
 
+const getPasswordResetUrl = resetGuid => {
+  return `${process.env.BASE_URL}/reset_password_change_password?resetGuid=${resetGuid}`;
+};
+
 /**
  * @TODO remove this and make Notify emails consistent instead
  * A function to get a set of personalisation params for the notify call
@@ -54,10 +58,10 @@ function sendPasswordResetEmail (params, mode = 'reset') {
   const {email, resetGuid, firstName, sender} = params;
   const personalisation = {
     firstName,
-    resetUrl: `${process.env.base_url}/reset_password_change_password?resetGuid=${resetGuid}`,
-    createUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
-    shareUrl: `${process.env.base_url}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
-    loginUrl: `${process.env.base_url}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
+    resetUrl: getPasswordResetUrl(resetGuid),
+    createUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
+    shareUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
+    loginUrl: `${process.env.BASE_URL}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
     sender
   };
   const messageRefs = {
@@ -72,12 +76,14 @@ function sendPasswordResetEmail (params, mode = 'reset') {
 function sendPasswordLockEmail (params) {
   return new Promise((resolve, reject) => {
     logger.info(params);
-    var resetUrl = `${process.env.reset_url}${params.resetGuid}`;
-    var personalisation = {
-      reset_url: resetUrl,
+
+    const personalisation = {
+      reset_url: getPasswordResetUrl(params.resetGuid),
       firstname: params.firstname
     };
-    var emailAddress = params.email;
+
+    const emailAddress = params.email;
+
     Water.sendNotifyMessage('password_locked_email', emailAddress, personalisation)
       .then((response) => {
         resolve(true);
