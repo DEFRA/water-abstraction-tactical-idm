@@ -18,35 +18,35 @@
   "license": "ISC",
   "devDependencies": {
     "auto-changelog": "^1.10.2",
-    "code": "^5.2.0",
+    "code": "^5.2.4",
     "codecov": "^3.0.2",
     "db-migrate": "^0.11.0",
     "db-migrate-pg": "^0.3.0",
     "del": "^3.0.0",
     "lab": "^15.5.0",
     "sinon": "^7.1.1",
-    "snyk": "^1.83.0",
+    "snyk": "^1.114.0",
     "standard": "^10.0.2"
   },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^4.1.1",
-    "airbrake-js": "^1.5.0",
-    "bcrypt": "^2.0.1",
+    "airbrake-js": "^1.6.0",
+    "bcrypt": "^3.0.2",
     "blipp": "^3.0.0",
-    "boom": "^7.2.0",
+    "boom": "^7.3.0",
     "dotenv": "^4.0.0",
     "good": "^8.1.1",
     "good-winston": "^4.0.0",
     "hapi": "^17.5.1",
-    "hapi-auth-jwt2": "^8.1.0",
+    "hapi-auth-jwt2": "^8.2.0",
     "hoek": "^4.2.1",
     "joi": "^13.4.0",
     "lodash": "^4.17.11",
     "path": "^0.12.7",
-    "pg": "^7.4.1",
+    "pg": "^7.7.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
-    "uuid": "^3.2.1"
+    "uuid": "^3.3.2"
   },
   "standard": {
     "ignore": [
