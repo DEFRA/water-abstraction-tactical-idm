@@ -3,6 +3,7 @@ const moment = require('moment');
 const { get, pick } = require('lodash');
 const uuid = require('uuid/v4');
 const notify = require('../lib/connectors/notify');
+const logger = require('../lib/logger');
 
 class UserNotFoundError extends Error {
   constructor (message) {
@@ -101,7 +102,7 @@ const resetPassword = async (request, h) => {
       return h.response({ data: null, error }).code(404);
     }
 
-    request.log('error', error);
+    logger.error('resetPassword error', error);
     return h.response({ data: null, error }).code(500);
   }
 };
