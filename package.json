@@ -1,8 +1,12 @@
 {
-  "name": "water-abstraction",
-  "version": "1.15.0",
-  "description": "Web app for Water Abstraction Permit service",
+  "name": "water-abstraction-tactical-idm",
+  "version": "1.16.0",
+  "description": "Tactical identity management for the water service",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DEFRA/water-abstraction-tactical-idm"
+  },
   "scripts": {
     "test": "lab",
     "test:travis": "lab -t 55 -m 0 -r lcov -o coverage/lcov.info -r console -o stdout",
