@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^4.1.1",
+    "@envage/water-abstraction-helpers": "^2.3.0",
     "airbrake-js": "^1.6.0",
     "bcrypt": "^3.0.2",
     "blipp": "^3.0.0",
