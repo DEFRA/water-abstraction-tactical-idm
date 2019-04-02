@@ -1,24 +1,25 @@
-const Helpers = require('../helpers');
 const logger = require('../logger');
+const helpers = require('@envage/water-abstraction-helpers');
+const config = require('../../../config');
 
-function sendNotifyMessage (messageRef, recipient, personalisation) {
-  return new Promise((resolve, reject) => {
-    const uri = `${process.env.WATER_URI}/notify/${messageRef}?token=${process.env.JWT_TOKEN}`;
-    const requestBody = {
-      recipient: recipient,
-      personalisation: personalisation
-    };
-
-    Helpers.makeURIRequestWithBody(uri, 'post', requestBody)
-      .then((response) => {
-        const data = response.body;
-        resolve(data);
-      }).catch((response) => {
-        logger.error(response);
-        resolve(response);
-      });
-  });
-}
+/**
+ * Sends a notify message, this is used in the the event of a password lock
+ * @param  {String} messageRef      - message ref identifies notify template
+ * @param  {[type]} recipient       - email address of recipient
+ * @param  {[type]} personalisation - personalisation options for Notify
+ * @return {Promise}                 resolves with Notify response
+ */
+const sendNotifyMessage = async (messageRef, recipient, personalisation = {}) => {
+  try {
+    const uri = `${config.services.water}/notify/${messageRef}`;
+    const options = { body: { recipient, personalisation } };
+    const response = await helpers.serviceRequest.post(uri, options);
+    return response;
+  } catch (err) {
+    logger.error(`Error sending notify messag`, err);
+    throw err;
+  }
+};
 
 module.exports = {
   sendNotifyMessage

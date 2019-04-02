@@ -29,5 +29,9 @@ module.exports = {
     max: 2,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000
+  },
+
+  services: {
+    water: process.env.WATER_URI || 'http://127.0.0.1:8001/water/1.0'
   }
 };
