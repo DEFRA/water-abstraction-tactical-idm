@@ -1,6 +1,6 @@
 
 const Lab = require('lab');
-const { test, experiment, before } = exports.lab = Lab.script();
+const { test, experiment, before, after } = exports.lab = Lab.script();
 const { expect } = require('code');
 
 function requireUncached (module) {
@@ -9,6 +9,12 @@ function requireUncached (module) {
 }
 
 experiment('config.js', () => {
+  const originalTestMode = process.env.TEST_MODE;
+
+  after(async() => {
+    process.env.TEST_MODE = originalTestMode;
+  });
+
   experiment('when test mode is enabled', () => {
     let config;
 
