@@ -1,5 +1,5 @@
 const Water = require('./water');
-const logger = require('../logger');
+const { logger } = require('@envage/water-abstraction-helpers');
 
 const getPasswordResetUrl = resetGuid => {
   return `${process.env.BASE_URL}/reset_password_change_password?resetGuid=${resetGuid}`;
@@ -18,7 +18,7 @@ const getPasswordResetUrl = resetGuid => {
  * @return {Object} personalisation for notify
  */
 function mapNotifyPersonalisation (params, mode) {
-  const {loginUrl, resetUrl, createUrl, shareUrl, firstName, sender} = params;
+  const { loginUrl, resetUrl, createUrl, shareUrl, firstName, sender } = params;
 
   if (mode === 'new') {
     return {
@@ -55,7 +55,7 @@ function mapNotifyPersonalisation (params, mode) {
  * @
  */
 function sendPasswordResetEmail (params, mode = 'reset') {
-  const {email, resetGuid, firstName, sender} = params;
+  const { email, resetGuid, firstName, sender } = params;
   const personalisation = {
     firstName,
     resetUrl: getPasswordResetUrl(resetGuid),
