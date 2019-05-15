@@ -1,7 +1,7 @@
 const config = require('../../../config');
 const { Pool } = require('pg');
 const pool = new Pool(config.pg);
-const logger = require('../logger');
+const { logger } = require('@envage/water-abstraction-helpers');
 
 pool.on('acquire', () => {
   const { totalCount, idleCount, waitingCount } = pool;
@@ -19,7 +19,7 @@ function query (queryString, params) {
       };
     })
     .catch(err => {
-      const {stack, code} = err;
+      const { stack, code } = err;
       return {
         error: { stack, code },
         data: null

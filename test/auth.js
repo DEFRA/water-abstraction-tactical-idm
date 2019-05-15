@@ -79,7 +79,7 @@ const buildRequest = (email, password, application) => ({
 });
 
 lab.experiment('Test authentication API', () => {
-  lab.beforeEach(async({ context }) => {
+  lab.beforeEach(async ({ context }) => {
     createdEmails = [];
     context.email = 'unit-test-user@example.com';
     context.password = uuidv4();
@@ -87,7 +87,7 @@ lab.experiment('Test authentication API', () => {
     context.userId = await createUser(context.email, context.password, context.application);
   });
 
-  lab.afterEach(async() => {
+  lab.afterEach(async () => {
     await deleteUsers();
   });
 
@@ -117,7 +117,7 @@ lab.experiment('Test authentication API', () => {
     expect(payload.err).to.not.equal(null);
   });
 
-  lab.test('The API should allow authentication for admin user with admin account', async() => {
+  lab.test('The API should allow authentication for admin user with admin account', async () => {
     // create a water_admin user
     const email = 'unit-test-admin@example.com';
     const password = uuidv4();
@@ -156,7 +156,7 @@ lab.experiment('Test authentication API', () => {
     expect(user.bad_logins).to.equal('2');
   });
 
-  lab.test('A user cannot use credentials for a different application', async({ context }) => {
+  lab.test('A user cannot use credentials for a different application', async ({ context }) => {
     const request = buildRequest(context.email, context.password, 'water_admin');
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
