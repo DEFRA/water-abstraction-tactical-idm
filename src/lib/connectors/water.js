@@ -1,4 +1,3 @@
-const logger = require('../logger');
 const helpers = require('@envage/water-abstraction-helpers');
 const config = require('../../../config');
 
@@ -16,7 +15,7 @@ const sendNotifyMessage = async (messageRef, recipient, personalisation = {}) =>
     const response = await helpers.serviceRequest.post(uri, options);
     return response;
   } catch (err) {
-    logger.error(`Error sending notify messag`, err);
+    helpers.logger.error(`Error sending notify messag`, err);
     throw err;
   }
 };
