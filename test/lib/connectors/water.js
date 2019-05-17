@@ -6,7 +6,7 @@ const helpers = require('@envage/water-abstraction-helpers');
 
 const config = require('../../../config');
 const water = require('../../../src/lib/connectors/water');
-const { logger } = require('@envage/water-abstraction-helpers');
+const { logger } = require('../../../src/logger');
 
 const response = { foo: 'bar' };
 const personalisation = { name: 'bob' };
