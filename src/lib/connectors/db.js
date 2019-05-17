@@ -1,7 +1,7 @@
 const config = require('../../../config');
 const { Pool } = require('pg');
 const pool = new Pool(config.pg);
-const { logger } = require('@envage/water-abstraction-helpers');
+const { logger } = require('../../logger');
 
 pool.on('acquire', () => {
   const { totalCount, idleCount, waitingCount } = pool;

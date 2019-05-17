@@ -3,7 +3,7 @@ const moment = require('moment');
 const { get, pick } = require('lodash');
 const uuid = require('uuid/v4');
 const notify = require('../lib/connectors/notify');
-const { logger } = require('@envage/water-abstraction-helpers');
+const { logger } = require('../logger');
 
 class UserNotFoundError extends Error {
   constructor (message) {

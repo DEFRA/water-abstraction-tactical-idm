@@ -1,5 +1,5 @@
 const Water = require('./water');
-const { logger } = require('@envage/water-abstraction-helpers');
+const { logger } = require('../../logger');
 
 const getPasswordResetUrl = resetGuid => {
   return `${process.env.BASE_URL}/reset_password_change_password?resetGuid=${resetGuid}`;
