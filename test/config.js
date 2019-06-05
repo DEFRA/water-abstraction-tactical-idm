@@ -1,7 +1,5 @@
-
-const Lab = require('lab');
-const { test, experiment, before, after } = exports.lab = Lab.script();
-const { expect } = require('code');
+const { test, experiment, before, after } = exports.lab = require('@hapi/lab').script();
+const { expect } = require('@hapi/code');
 
 function requireUncached (module) {
   delete require.cache[require.resolve(module)];

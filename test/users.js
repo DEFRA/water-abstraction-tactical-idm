@@ -9,10 +9,9 @@
  */
 'use strict';
 const uuidv4 = require('uuid/v4');
-const Lab = require('lab');
-const lab = exports.lab = Lab.script();
+const { experiment, test, beforeEach, after } = exports.lab = require('@hapi/lab').script();
 
-const { expect } = require('code');
+const { expect } = require('@hapi/code');
 const server = require('../index');
 
 // A user is always created with testEmailOne as part of the beforeEach.
@@ -50,21 +49,21 @@ const createTestUser = async (userName = testEmailOne, application = 'water_vml'
   return server.inject(request);
 };
 
-lab.experiment('Test users API', () => {
+experiment('Test users API', () => {
   // Always add the basic test user to the database before each
   // to simplify GET based tests
-  lab.beforeEach(async ({ context }) => {
+  beforeEach(async ({ context }) => {
     await deleteTestUsers();
     const response = await createTestUser();
     const payload = JSON.parse(response.payload);
     context.userId = payload.data.user_id;
   });
 
-  lab.after(async () => {
+  after(async () => {
     await deleteTestUsers();
   });
 
-  lab.test('The API should create a user', async ({ context }) => {
+  test('The API should create a user', async ({ context }) => {
     const res = await createTestUser(testEmailTwo);
     expect(res.statusCode).to.equal(201);
 
@@ -77,7 +76,7 @@ lab.experiment('Test users API', () => {
     expect(payload.data.date_updated).to.be.a.string();
   });
 
-  lab.test('The API should get a user by ID', async ({ context }) => {
+  test('The API should get a user by ID', async ({ context }) => {
     const request = createGetRequest(context.userId);
     const response = await server.inject(request);
     expect(response.statusCode).to.equal(200);
@@ -89,7 +88,7 @@ lab.experiment('Test users API', () => {
     expect(data.user_name).to.equal(testEmailOne);
   });
 
-  lab.test('The API should get a user by email address', async ({ context }) => {
+  test('The API should get a user by email address', async ({ context }) => {
     const request = createGetRequest(testEmailOne);
     const response = await server.inject(request);
     expect(response.statusCode).to.equal(200);
@@ -99,7 +98,7 @@ lab.experiment('Test users API', () => {
     expect(payload.data.user_id).to.equal(context.userId);
   });
 
-  lab.test('The API should get a list of users', async () => {
+  test('The API should get a list of users', async () => {
     const request = createRequest();
     const response = await server.inject(request);
     expect(response.statusCode).to.equal(200);
@@ -109,13 +108,13 @@ lab.experiment('Test users API', () => {
     expect(payload.data).to.be.an.array();
   });
 
-  lab.test('It is not be possible to use the same email with one application', async () => {
+  test('It is not be possible to use the same email with one application', async () => {
     await createTestUser(testEmailTwo, 'water_vml');
     const response = await createTestUser(testEmailTwo, 'water_vml');
     expect(response.statusCode).to.equal(400);
   });
 
-  lab.test('It is possible to use the same email with across applications', async () => {
+  test('It is possible to use the same email with across applications', async () => {
     const createVmlResponse = await createTestUser(testEmailTwo, 'water_vml');
     const createAdminResponse = await createTestUser(testEmailTwo, 'water_admin');
     expect(createVmlResponse.statusCode).to.equal(201);
