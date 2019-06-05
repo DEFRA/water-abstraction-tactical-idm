@@ -4,8 +4,9 @@ const sinon = require('sinon');
 const sandbox = sinon.createSandbox();
 const helpers = require('@envage/water-abstraction-helpers');
 
+const config = require('../../../config');
 const water = require('../../../src/lib/connectors/water');
-const logger = require('../../../src/lib/logger');
+const { logger } = require('../../../src/logger');
 
 const response = { foo: 'bar' };
 const personalisation = { name: 'bob' };
@@ -23,16 +24,16 @@ experiment('water connectors', () => {
     process.env.JWT_TOKEN = token;
   });
 
-  afterEach(async() => {
+  afterEach(async () => {
     process.env.JWT_TOKEN = jwtToken;
     sandbox.restore();
   });
 
   experiment('sendNotifyMessage', () => {
-    test('calls serviceRequest.post with correct arguments', async() => {
+    test('calls serviceRequest.post with correct arguments', async () => {
       await water.sendNotifyMessage(ref, recipient, personalisation);
       const [uri, options] = helpers.serviceRequest.post.lastCall.args;
-      expect(uri).to.equal(`http://127.0.0.1:8001/water/1.0/notify/${ref}`);
+      expect(uri).to.equal(`${config.services.water}/notify/${ref}`);
       expect(options).to.equal({
         body: {
           recipient,
@@ -41,17 +42,17 @@ experiment('water connectors', () => {
       });
     });
 
-    test('resolves with the response from the POST request', async() => {
+    test('resolves with the response from the POST request', async () => {
       const data = await water.sendNotifyMessage(ref, recipient, personalisation);
       expect(data).to.equal(response);
     });
 
     experiment('when the POST fails', () => {
-      beforeEach(async() => {
+      beforeEach(async () => {
         helpers.serviceRequest.post.rejects();
       });
 
-      test('throws and logs an error', async() => {
+      test('throws and logs an error', async () => {
         const func = () => water.sendNotifyMessage(ref, recipient, personalisation);
         await expect(func()).to.reject();
         expect(logger.error.callCount).to.equal(1);

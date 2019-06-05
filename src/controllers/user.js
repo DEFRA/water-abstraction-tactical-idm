@@ -3,7 +3,7 @@ const Joi = require('joi');
 const { createHash } = require('../lib/helpers');
 
 module.exports = (config = {}) => {
-  const {pool, version} = config;
+  const { pool, version } = config;
   return new HAPIRestAPI({
     table: 'idm.users',
     primaryKey: 'user_id',
@@ -14,11 +14,11 @@ module.exports = (config = {}) => {
     postSelect: (data) => {
       return data.map(row => {
         // Don't include password in returned data
-        const {password, ...rest} = row;
+        const { password, ...rest } = row;
         return rest;
       });
     },
-    preQuery: async(request) => {
+    preQuery: async (request) => {
       // Hash passwords found in data
       if ('password' in request.data) {
         request.data.password = await createHash(request.data.password);

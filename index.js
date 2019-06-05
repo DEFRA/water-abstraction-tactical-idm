@@ -11,10 +11,9 @@ const serverPlugins = {
 };
 
 const config = require('./config');
-const logger = require('./src/lib/logger');
 
+const { logger } = require('./src/logger');
 const goodWinstonStream = new GoodWinston({ winston: logger });
-logger.init(config.logger);
 
 const server = new Hapi.Server(config.server);
 
@@ -53,8 +52,8 @@ const initBlipp = async () => {
 
 const configureJwtStrategy = () => {
   server.auth.strategy('jwt', 'jwt', {
-    key: process.env.JWT_SECRET,          // Never Share your secret key
-    validate: validateJWT,            // validate function defined above
+    key: process.env.JWT_SECRET, // Never Share your secret key
+    validate: validateJWT, // validate function defined above
     verifyOptions: {}, // pick a strong algorithm
     verify: validateJWT
   });
