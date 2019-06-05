@@ -1,5 +1,5 @@
 /* API operations only - NO UI */
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const IDM = require('../lib/idm');
 const { version } = require('../../config');
 const { pool } = require('../lib/connectors/db');
