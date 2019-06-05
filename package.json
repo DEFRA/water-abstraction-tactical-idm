@@ -1,6 +1,6 @@
 {
   "name": "water-abstraction-tactical-idm",
-  "version": "1.22.0",
+  "version": "1.23.0",
   "description": "Tactical identity management for the water service",
   "main": "index.js",
   "repository": {
@@ -14,7 +14,7 @@
     "migrate": "node scripts/create-schema && db-migrate up --verbose",
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
-    "lint": "eslint ./src/**/*.js",
+    "lint": "eslint .",
     "codecov": "codecov",
     "version": "auto-changelog -p --commit-limit false && git add CHANGELOG.md"
   },
@@ -23,40 +23,37 @@
   "devDependencies": {
     "auto-changelog": "^1.10.2",
     "code": "^5.2.4",
-    "codecov": "^3.0.2",
-    "db-migrate": "^0.11.0",
-    "db-migrate-pg": "^0.3.0",
-    "del": "^3.0.0",
+    "codecov": "^3.5.0",
+    "db-migrate": "^0.11.5",
+    "db-migrate-pg": "^0.5.1",
+    "eslint": "^5.16.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.17.2",
+    "eslint-plugin-node": "^9.0.1",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0",
     "lab": "^15.5.0",
-    "sinon": "^7.1.1",
-    "snyk": "^1.114.0",
-    "standard": "^10.0.2"
+    "sinon": "^7.3.2",
+    "snyk": "^1.165.0"
   },
   "dependencies": {
-    "@envage/hapi-pg-rest-api": "^4.1.1",
-    "@envage/water-abstraction-helpers": "^2.3.0",
-    "airbrake-js": "^1.6.0",
-    "bcrypt": "^3.0.2",
+    "@envage/hapi-pg-rest-api": "^4.1.2",
+    "@envage/water-abstraction-helpers": "^3.0.0",
+    "bcrypt": "^3.0.6",
     "blipp": "^3.0.0",
     "boom": "^7.3.0",
     "dotenv": "^4.0.0",
-    "good": "^8.1.1",
+    "good": "^8.1.2",
     "good-winston": "^4.0.0",
     "hapi": "^17.5.1",
-    "hapi-auth-jwt2": "^8.2.0",
+    "hapi-auth-jwt2": "^8.6.1",
     "hoek": "^4.2.1",
     "joi": "^13.4.0",
     "lodash": "^4.17.11",
     "path": "^0.12.7",
-    "pg": "^7.7.1",
+    "pg": "^7.11.0",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
+    "request-promise-native": "^1.0.7",
     "uuid": "^3.3.2"
-  },
-  "standard": {
-    "ignore": [
-      "node_modules/",
-      "public/"
-    ]
   }
 }

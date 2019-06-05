@@ -3,7 +3,7 @@ const rp = require('request-promise-native').defaults({
   strictSSL: false
 });
 
-const logger = require('./logger');
+const { logger } = require('../logger');
 
 function post (message) {
   return new Promise((resolve, reject) => {
