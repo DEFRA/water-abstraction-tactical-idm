@@ -2,12 +2,12 @@
 require('dotenv').config();
 
 const GoodWinston = require('good-winston');
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 
 const serverPlugins = {
   blipp: require('blipp'),
   hapiAuthJwt2: require('hapi-auth-jwt2'),
-  good: require('good')
+  good: require('@hapi/good')
 };
 
 const config = require('./config');
@@ -18,7 +18,7 @@ const goodWinstonStream = new GoodWinston({ winston: logger });
 const server = new Hapi.Server(config.server);
 
 const validateJWT = (decoded, request, h) => {
-  logger.info(request.url.path);
+  logger.info(request.path);
   logger.info(request.payload);
   logger.info('CALL WITH TOKEN');
   logger.info(decoded);
