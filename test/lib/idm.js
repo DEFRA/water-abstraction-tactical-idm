@@ -1,5 +1,5 @@
-const { expect } = require('code');
-const { before, after, experiment, test } = exports.lab = require('lab').script();
+const { expect } = require('@hapi/code');
+const { before, after, experiment, test } = exports.lab = require('@hapi/lab').script();
 const helpers = require('../test-helpers');
 const idm = require('../../src/lib/idm');
 const uuidv4 = require('uuid/v4');

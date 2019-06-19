@@ -43,7 +43,7 @@ async function doUserLogin (userName, password, application) {
             updateAuthenticatedUser(user);
 
             return {
-              ...pick(user, ['user_id', 'reset_required', 'reset_guid', 'last_login', 'bad_logins', 'user_data', 'user_name']),
+              ...pick(user, ['user_id', 'reset_required', 'reset_guid', 'last_login', 'bad_logins', 'user_data', 'user_name', 'role']),
               err: null
             };
           })
