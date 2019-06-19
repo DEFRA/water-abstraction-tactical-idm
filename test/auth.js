@@ -9,10 +9,9 @@
  */
 'use strict';
 const uuidv4 = require('uuid/v4');
-const Lab = require('lab');
-const lab = exports.lab = Lab.script();
+const { experiment, test, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
 
-const { expect } = require('code');
+const { expect } = require('@hapi/code');
 const server = require('../index');
 
 let createdEmails = [];
@@ -78,8 +77,8 @@ const buildRequest = (email, password, application) => ({
   }
 });
 
-lab.experiment('Test authentication API', () => {
-  lab.beforeEach(async ({ context }) => {
+experiment('Test authentication API', () => {
+  beforeEach(async ({ context }) => {
     createdEmails = [];
     context.email = 'unit-test-user@example.com';
     context.password = uuidv4();
@@ -87,11 +86,11 @@ lab.experiment('Test authentication API', () => {
     context.userId = await createUser(context.email, context.password, context.application);
   });
 
-  lab.afterEach(async () => {
+  afterEach(async () => {
     await deleteUsers();
   });
 
-  lab.test('The API should allow authentication with correct password', async ({ context }) => {
+  test('The API should allow authentication with correct password', async ({ context }) => {
     const { email, password, application } = context;
     const request = buildRequest(email, password, application);
     const res = await server.inject(request);
@@ -104,7 +103,7 @@ lab.experiment('Test authentication API', () => {
     expect(payload.user_id).to.equal(context.userId);
   });
 
-  lab.test('The API should ensure passwords are case sensitive', async ({ context }) => {
+  test('The API should ensure passwords are case sensitive', async ({ context }) => {
     const { email, password, application } = context;
     const request = buildRequest(email, password.toUpperCase(), application);
 
@@ -117,7 +116,7 @@ lab.experiment('Test authentication API', () => {
     expect(payload.err).to.not.equal(null);
   });
 
-  lab.test('The API should allow authentication for admin user with admin account', async () => {
+  test('The API should allow authentication for admin user with admin account', async () => {
     // create a water_admin user
     const email = 'unit-test-admin@example.com';
     const password = uuidv4();
@@ -137,7 +136,7 @@ lab.experiment('Test authentication API', () => {
     expect(payload.user_id).to.equal(userId);
   });
 
-  lab.test('The API should prevent authentication with incorrect password', async ({ context }) => {
+  test('The API should prevent authentication with incorrect password', async ({ context }) => {
     const request = buildRequest(context.email, 'wrongpass', context.application);
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
@@ -147,7 +146,7 @@ lab.experiment('Test authentication API', () => {
     expect(payload.err).to.not.equal(null);
   });
 
-  lab.test('bad_logins is incremented on failed auth attempt', async ({ context }) => {
+  test('bad_logins is incremented on failed auth attempt', async ({ context }) => {
     const request = buildRequest(context.email, 'wrongpass', context.application);
     await server.inject(request);
     await server.inject(request);
@@ -156,7 +155,7 @@ lab.experiment('Test authentication API', () => {
     expect(user.bad_logins).to.equal('2');
   });
 
-  lab.test('A user cannot use credentials for a different application', async ({ context }) => {
+  test('A user cannot use credentials for a different application', async ({ context }) => {
     const request = buildRequest(context.email, context.password, 'water_admin');
     const res = await server.inject(request);
     expect(res.statusCode).to.equal(401);
