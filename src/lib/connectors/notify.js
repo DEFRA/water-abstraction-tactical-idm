@@ -79,7 +79,7 @@ function sendPasswordLockEmail (params) {
     logger.info(params);
 
     const personalisation = {
-      reset_url: getPasswordResetUrl(params.resetGuid),
+      reset_url: getPasswordResetUrl(params.resetGuid, params.userApplication),
       firstname: params.firstname
     };
 
