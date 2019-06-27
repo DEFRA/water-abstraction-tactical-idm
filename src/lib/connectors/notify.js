@@ -1,8 +1,9 @@
 const Water = require('./water');
 const { logger } = require('../../logger');
+const { application } = require('../../../config');
 
-const getPasswordResetUrl = resetGuid => {
-  return `${process.env.BASE_URL}/reset_password_change_password?resetGuid=${resetGuid}`;
+const getPasswordResetUrl = (resetGuid, userApplication) => {
+  return `${application[userApplication]}/reset_password_change_password?resetGuid=${resetGuid}`;
 };
 
 /**
@@ -55,10 +56,10 @@ function mapNotifyPersonalisation (params, mode) {
  * @
  */
 function sendPasswordResetEmail (params, mode = 'reset') {
-  const { email, resetGuid, firstName, sender } = params;
+  const { email, resetGuid, firstName, sender, userApplication } = params;
   const personalisation = {
     firstName,
-    resetUrl: getPasswordResetUrl(resetGuid),
+    resetUrl: getPasswordResetUrl(resetGuid, userApplication),
     createUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
     shareUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
     loginUrl: `${process.env.BASE_URL}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
