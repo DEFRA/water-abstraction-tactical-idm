@@ -80,7 +80,7 @@ function sendPasswordLockEmail (params) {
 
     const personalisation = {
       reset_url: getPasswordResetUrl(params.resetGuid, params.userApplication),
-      firstname: params.firstname
+      firstname: params.firstName
     };
 
     const emailAddress = params.email;
