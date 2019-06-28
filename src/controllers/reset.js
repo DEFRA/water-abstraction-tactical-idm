@@ -54,7 +54,8 @@ const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
     email: user.user_name,
     firstName: get(user, 'user_data.firstName', '(User)'),
     resetGuid,
-    sender
+    sender,
+    userApplication: user.application
   }, mode);
 
   if (err) {

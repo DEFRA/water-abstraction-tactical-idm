@@ -35,5 +35,10 @@ module.exports = {
 
   services: {
     water: process.env.WATER_URI || 'http://127.0.0.1:8001/water/1.0'
+  },
+
+  application: {
+    water_vml: process.env.BASE_URL || 'http://127.0.0.1:8000',
+    water_admin: process.env.ADMIN_BASE_URL || 'http://127.0.0.1:8008'
   }
 };

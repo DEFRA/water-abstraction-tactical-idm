@@ -74,7 +74,8 @@ function increaseLockCount (user) {
       Notify.sendPasswordLockEmail({
         email: user.user_name,
         firstname: get(user, 'user_data.firstname', 'User'),
-        resetGuid
+        resetGuid,
+        userApplication: user.application
       })
     ];
 
