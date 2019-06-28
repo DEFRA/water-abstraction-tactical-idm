@@ -16,20 +16,14 @@ const params = {
   sender: 'test-sender',
   userApplication: 'water_vml'
 };
-const token = 'token';
 
 experiment('notify connectors', () => {
-  let jwtToken;
-
   beforeEach(async () => {
     sandbox.stub(helpers.serviceRequest, 'post').resolves(response);
     sandbox.stub(logger, 'error');
-    jwtToken = process.env.JWT_TOKEN;
-    process.env.JWT_TOKEN = token;
   });
 
   afterEach(async () => {
-    process.env.JWT_TOKEN = jwtToken;
     sandbox.restore();
   });
 
