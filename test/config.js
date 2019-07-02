@@ -24,6 +24,14 @@ experiment('config.js', () => {
     test('logging level is "info"', async () => {
       expect(config.logger.level).to.equal('info');
     });
+
+    test('default application base url for external service', async () => {
+      expect(config.application.water_vml).to.equal('http://127.0.0.1:8000');
+    });
+
+    test('default application base url for internal service', async () => {
+      expect(config.application.water_admin).to.equal('http://127.0.0.1:8008');
+    });
   });
 
   experiment('when test mode is disabled', () => {
