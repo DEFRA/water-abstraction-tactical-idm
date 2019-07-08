@@ -9,6 +9,7 @@ const apiConfig = {
 };
 
 const resetController = require('../controllers/reset');
+const changeEmailController = require('../controllers/change-email');
 const UsersController = require('../controllers/user')(apiConfig);
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
@@ -32,7 +33,7 @@ module.exports = [
       validate: {
         params: {
           email: Joi.string().email().required(),
-          application: Joi.string().required()
+          application: Joi.string().email().required()
         },
         query: {
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
@@ -52,6 +53,51 @@ module.exports = [
         payload: {
           user_name: Joi.string().required(),
           password: Joi.string().required(),
+          application: Joi.string().required()
+        }
+      }
+    }
+  },
+  {
+    method: 'POST',
+    path: '/idm/' + version + '/user/change-email-address/start',
+    handler: changeEmailController.startChangeEmailAddress,
+    options: {
+      description: 'Get verification code for email change and send to new email',
+      validate: {
+        payload: {
+          userId: Joi.number().positive().required(),
+          password: Joi.string().required()
+        }
+      }
+    }
+  },
+  {
+    method: 'PATCH',
+    path: '/idm/' + version + '/user/change-email-address/create-code',
+    handler: changeEmailController.createVerificationCode,
+    options: {
+      description: 'Get verification code for email change and send to new email',
+      validate: {
+        params: {
+          userId: Joi.number().positive().required(),
+          verificationId: Joi.number().guid().required(),
+          email: Joi.string().email().required(),
+          application: Joi.string().required()
+        }
+      }
+    }
+  },
+  {
+    method: 'POST',
+    path: '/idm/' + version + '/user/change-email-address/complete',
+    handler: changeEmailController.checkVerificationCode,
+    options: {
+      description: 'Check verification code submitted by user, if matches, update user email',
+      validate: {
+        payload: {
+          userId: Joi.number().positive().required(),
+          securityCode: Joi.number().positive().required(),
           application: Joi.string().required()
         }
       }
