@@ -4,13 +4,7 @@ const { expect } = require('@hapi/code');
 const { test, experiment, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
 const sinon = require('sinon');
 const sandbox = sinon.createSandbox();
-const idm = require('../../src/lib/idm');
-const moment = require('moment');
 const { logger } = require('../../src/logger');
-
-const guidRegex = /[\d|\w]{8}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{12}/;
-const verificationCodeRegex = /[\d|\w]{5}/;
-const dateFormatRegex = /[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/;
 
 const request = {
   payload: {
@@ -32,9 +26,11 @@ const h = {
 
 experiment('change email controller', async () => {
   beforeEach(async () => {
-    sandbox.stub(idm, 'getUserByUsername');
-    sandbox.stub(controller.repo, 'create');
-    sandbox.stub(controller.repo, 'update');
+    sandbox.stub(helpers.emailChangeRepo, 'find');
+    sandbox.stub(helpers.emailChangeRepo, 'update');
+    sandbox.stub(helpers, 'getEmailChangeRecordById');
+    sandbox.stub(helpers.usersRepo, 'findById');
+    sandbox.stub(helpers.usersRepo, 'checkEmailAddress');
     sandbox.stub(logger, 'error');
   });
 
@@ -79,10 +75,15 @@ experiment('change email controller', async () => {
     });
   });
   experiment('createVerificationCode', async () => {
+    beforeEach(async () => {
+      helpers.getEmailChangeRecordById.returns({ rowCount: 1, verfication_code: 'jgi3-4mf8' });
+      helpers.usersRepo.findById.returns({ application: 'test-app' });
+    });
+
     afterEach(async () => sandbox.restore());
 
     test('throw error if email address is already in use', async () => {
-      idm.getUserByUsername.returns({ data: [{ rowCount: 1 }] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [{ user_name: 'new-email@domain.com' }] });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data).to.be.null();
@@ -92,7 +93,7 @@ experiment('change email controller', async () => {
     });
 
     test('logger.error to be called with error', async () => {
-      idm.getUserByUsername.returns({ data: [{ rowCount: 1 }] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [{ user_name: 'new-email@domain.com' }] });
       await controller.createVerificationCode(request, h);
       const args = logger.error.lastCall.args;
       expect(args[0]).to.be.an.error(controller.EmailChangeError);
@@ -100,8 +101,8 @@ experiment('change email controller', async () => {
     });
 
     test('throw error if does not update 1 record', async () => {
-      idm.getUserByUsername.returns({ data: [{ rowCount: 0 }] });
-      controller.repo.update.returns({ rowCount: 0, verification_code: '123456' });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [] });
+      helpers.emailChangeRepo.update.returns({ rowCount: 0, verification_code: '123456' });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data).to.be.null();
@@ -110,9 +111,9 @@ experiment('change email controller', async () => {
       expect(args[0].error.statusCode).to.equal(500);
     });
 
-    test('happy path - return verificationId and authenticated flag', async () => {
-      idm.getUserByUsername.returns({ data: [{ rowCount: 0 }] });
-      controller.repo.update.returns({ rowCount: 1, verification_code: '123456' });
+    test('happy path - return verification code', async () => {
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [] });
+      helpers.emailChangeRepo.update.returns({ rowCount: 1, verification_code: '123456' });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data.verificationCode).to.equal('123456');
@@ -127,7 +128,7 @@ experiment('change email controller', async () => {
     afterEach(async () => sandbox.restore());
 
     test('throw error if email address is already in use', async () => {
-      controller.repo.update.returns({ rowCount: 0, new_email_address: 'new_email@domain.com' });
+      helpers.emailChangeRepo.update.returns({ rowCount: 0, new_email_address: 'new_email@domain.com' });
       await controller.checkVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data).to.be.null();
@@ -137,15 +138,17 @@ experiment('change email controller', async () => {
     });
 
     test('logger.error to be called with error', async () => {
-      controller.repo.update.returns({ rowCount: 0, new_email_address: 'new_email@domain.com' });
+      helpers.emailChangeRepo.update.returns({ rowCount: 0, new_email_address: 'new_email@domain.com' });
       await controller.checkVerificationCode(request, h);
       const args = logger.error.lastCall.args;
       expect(args[0]).to.be.an.error(controller.EmailChangeError);
       expect(args[0]).to.be.an.error('Email change verification code has expired or is incorrect');
     });
 
-    test('happy path - return verificationId and authenticated flag', async () => {
-      controller.repo.update.returns({ rowCount: 1, new_email_address: 'new_email@domain.com' });
+    test('happy path - return new email address', async () => {
+      helpers.emailChangeRepo.update.returns({ rowCount: 1, new_email_address: 'new_email@domain.com' });
+      helpers.getEmailChangeRecordById.returns({ user_id: 123 });
+      helpers.usersRepo.findById.returns({ application: 'test-app' });
       await controller.checkVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data.newEmail).to.equal('new_email@domain.com');
