@@ -26,9 +26,7 @@ const h = {
 
 experiment('change email controller', async () => {
   beforeEach(async () => {
-    sandbox.stub(helpers.emailChangeRepo, 'find');
     sandbox.stub(helpers.emailChangeRepo, 'update');
-    sandbox.stub(helpers, 'getEmailChangeRecordById');
     sandbox.stub(helpers.usersRepo, 'findById');
     sandbox.stub(helpers.usersRepo, 'checkEmailAddress');
     sandbox.stub(logger, 'error');
@@ -76,7 +74,6 @@ experiment('change email controller', async () => {
   });
   experiment('createVerificationCode', async () => {
     beforeEach(async () => {
-      helpers.getEmailChangeRecordById.returns({ rowCount: 1, verfication_code: 'jgi3-4mf8' });
       helpers.usersRepo.findById.returns({ application: 'test-app' });
     });
 
@@ -122,7 +119,7 @@ experiment('change email controller', async () => {
   });
   experiment('checkVerificationCode', async () => {
     beforeEach(async () => {
-      sandbox.stub(helpers, 'updateIDM');
+      sandbox.stub(helpers, 'updateEmailAddress');
     });
 
     afterEach(async () => sandbox.restore());
@@ -147,7 +144,6 @@ experiment('change email controller', async () => {
 
     test('happy path - return new email address', async () => {
       helpers.emailChangeRepo.update.returns({ rowCount: 1, new_email_address: 'new_email@domain.com' });
-      helpers.getEmailChangeRecordById.returns({ user_id: 123 });
       helpers.usersRepo.findById.returns({ application: 'test-app' });
       await controller.checkVerificationCode(request, h);
       const args = h.response.lastCall.args;

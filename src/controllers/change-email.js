@@ -10,6 +10,12 @@ class EmailChangeError extends Error {
   }
 }
 
+/**
+ * Starts email change process:
+ *   Checks number of attempts in last 24hrs
+ *   Checks password entered
+ *   Creates record in email change verifications table
+ */
 const startChangeEmailAddress = async (request, h) => {
   try {
     const { userId, password } = request.payload;
@@ -26,6 +32,11 @@ const startChangeEmailAddress = async (request, h) => {
   }
 };
 
+/**
+ * Second step of email change process:
+ *   Checks whether email address is already in use
+ *   Updates record in email change verifications table with newEmail and code
+ */
 const createVerificationCode = async (request, h) => {
   try {
     const { email: newEmail, verificationId } = request.params;
@@ -56,6 +67,11 @@ const createVerificationCode = async (request, h) => {
   }
 };
 
+/**
+ * Final step of email change process:
+ *   Checks whether there is a record with the code provided that is > 24hrs old
+ *   Update the user_name in the users table
+ */
 const checkVerificationCode = async (request, h) => {
   const { userId, verificationCode } = request.params;
 
@@ -71,9 +87,7 @@ const checkVerificationCode = async (request, h) => {
 
     if (rowCount !== 1) throw new EmailChangeError('Email change verification code has expired or is incorrect', 409);
 
-    const { application } = await helpers.usersRepo.findById(userId);
-
-    await helpers.updateIDM(userId, newEmail, application);
+    await helpers.updateEmailAddress(userId, newEmail);
 
     return h.response({ data: { newEmail }, error: null }).code(200);
   } catch (error) {
