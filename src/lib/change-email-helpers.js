@@ -37,6 +37,11 @@ const emailChangeRepo = new Repository({
   primaryKey: 'email_change_verification_id'
 });
 
+/**
+ * Create record in email change verification table
+ * @param  {Number}  userId
+ * @param  {Boolean}  authenticated whether or not the user entered the correct password
+ */
 const createEmailChangeRecord = async (userId, authenticated) => {
   const data = {
     email_change_verification_id: uuid(),
@@ -50,14 +55,10 @@ const createEmailChangeRecord = async (userId, authenticated) => {
   return emailChangeRepo.create(data);
 };
 
-const getEmailChangeRecordById = async verificationId => {
-  const result = await emailChangeRepo.find({ email_change_verification_id: verificationId });
-  if (result.rowCount !== 1) {
-    throw new EmailChangeError(`Email change record does not exist, id: ${verificationId}`, 404);
-  }
-  return result.data[0];
-};
-
+/**
+ * Get email change record by user_id
+ * @param  {Number}  userId
+ */
 const getRecordsByUserId = async userId => {
   return emailChangeRepo.find({
     user_id: userId,
@@ -65,6 +66,11 @@ const getRecordsByUserId = async userId => {
   });
 };
 
+/**
+ * Checks password which was entered by user
+ * @param  {Number}  userId
+ * @param  {String}  password
+ */
 const authenticateUserById = async (userId, password) => {
   const user = await usersRepo.findById(userId);
   if (user) {
@@ -73,20 +79,18 @@ const authenticateUserById = async (userId, password) => {
   throw new Error('User does not exist');
 };
 
+/**
+ * Update email address in users table
+ * @param  {Number}  userId
+ * @param  {String}  newEmail
+ */
 const updateEmailAddress = async (userId, newEmail) => {
-  const { error, rowCount } = usersRepo.update({ user_id: userId }, { user_name: newEmail });
-  if (error) throw error;
-  if (rowCount === 0) throw new EmailChangeError('User does not exist', 500);
-};
-
-const updateIDM = async (userId, newEmail, application) => {
-  const filter = {
-    user_id: userId
-  };
+  const filter = { user_id: userId };
   const data = { user_name: newEmail };
 
-  // update user email
-  await helpers.updateEmailAddress(filter, data);
+  const { error, rowCount } = await usersRepo.update(filter, data);
+  if (error) throw error;
+  if (rowCount === 0) throw new EmailChangeError('User does not exist', 500);
 };
 
 /**
@@ -107,10 +111,8 @@ module.exports = {
   usersRepo,
   emailChangeRepo,
   createEmailChangeRecord,
-  getEmailChangeRecordById,
   getRecordsByUserId,
   authenticateUserById,
   updateEmailAddress,
-  updateIDM,
   createDigitCode
 };
