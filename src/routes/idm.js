@@ -79,11 +79,9 @@ module.exports = [
     options: {
       description: 'Get verification code for email change and send to new email',
       validate: {
-        params: {
-          userId: Joi.number().positive().required(),
-          verificationId: Joi.number().guid().required(),
-          email: Joi.string().email().required(),
-          application: Joi.string().required()
+        payload: {
+          verificationId: Joi.string().guid().required(),
+          email: Joi.string().email().required()
         }
       }
     }
@@ -97,8 +95,7 @@ module.exports = [
       validate: {
         payload: {
           userId: Joi.number().positive().required(),
-          securityCode: Joi.number().positive().required(),
-          application: Joi.string().required()
+          securityCode: Joi.number().positive().required()
         }
       }
     }

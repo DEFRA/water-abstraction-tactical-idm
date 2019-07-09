@@ -2,10 +2,30 @@ const helpers = require('../lib/helpers');
 const uuid = require('uuid/v4');
 const moment = require('moment');
 const { pool } = require('../lib/connectors/db');
-const { EmailChangeError, checkEmailAddressInIDM } = require('../controllers/change-email');
+const DB = require('./connectors/db');
+const { EmailChangeError } = require('../controllers/change-email');
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
 
-const usersRepo = new Repository({
+class UsersRespository extends Repository {
+  findById (userId) {
+    const user = this.find({ user_id: userId });
+    return user.data[0];
+  }
+  checkEmailAddress (verificationId, newEmail) {
+    const query = `SELECT user_name FROM idm.users u
+      JOIN (
+        SELECT application
+        FROM idm.users u
+        JOIN idm.change_email_verification v ON v.user_id = u.user_id
+        WHERE verification_id=$1
+      ) v ON v.application=u.application
+      WHERE u.user_name=$2`;
+
+    return DB.query(query, [verificationId, newEmail]);
+  }
+};
+
+const usersRepo = new UsersRespository({
   connection: pool,
   table: 'idm.users',
   primaryKey: 'user_id'
@@ -30,6 +50,14 @@ const createEmailChangeRecord = async (userId, authenticated) => {
   return emailChangeRepo.create(data);
 };
 
+const getEmailChangeRecordById = async verificationId => {
+  const result = await emailChangeRepo.find({ email_change_verification_id: verificationId });
+  if (result.rowCount !== 1) {
+    throw new EmailChangeError(`Email change record does not exist, id: ${verificationId}`, 404);
+  }
+  return result.data[0];
+};
+
 const getRecordsByUserId = async userId => {
   return emailChangeRepo.find({
     user_id: userId,
@@ -38,11 +66,11 @@ const getRecordsByUserId = async userId => {
 };
 
 const authenticateUserById = async (userId, password) => {
-  const user = usersRepo.find({ user_id: userId });
+  const user = await usersRepo.findById(userId);
   if (user) {
     return helpers.compareHash(password, user.password);
   }
-  return 404;
+  throw new Error('User does not exist');
 };
 
 const updateEmailAddress = async (userId, newEmail) => {
@@ -52,11 +80,6 @@ const updateEmailAddress = async (userId, newEmail) => {
 };
 
 const updateIDM = async (userId, newEmail, application) => {
-  // Check if email address already exists
-  const { rowCount } = await checkEmailAddressInIDM(userId, newEmail, application);
-
-  if (rowCount > 0) throw new EmailChangeError('Email address already in use', 404);
-
   const filter = {
     user_id: userId
   };
@@ -84,6 +107,7 @@ module.exports = {
   usersRepo,
   emailChangeRepo,
   createEmailChangeRecord,
+  getEmailChangeRecordById,
   getRecordsByUserId,
   authenticateUserById,
   updateEmailAddress,

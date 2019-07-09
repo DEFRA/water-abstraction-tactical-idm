@@ -1,15 +1,6 @@
 const moment = require('moment');
-const idm = require('../lib/idm');
 const { logger } = require('../logger');
 const helpers = require('../lib/change-email-helpers');
-const { pool } = require('../lib/connectors/db');
-const Repository = require('@envage/hapi-pg-rest-api/src/repository');
-
-const repo = new Repository({
-  connection: pool,
-  table: 'idm.email_change_verification',
-  primaryKey: 'email_change_verification_id'
-});
 
 class EmailChangeError extends Error {
   constructor (message, statusCode) {
@@ -35,18 +26,13 @@ const startChangeEmailAddress = async (request, h) => {
   }
 };
 
-const checkEmailAddressInIDM = async (userId, newEmail, application) => {
-  const result = await idm.getUserByUsername(newEmail, application);
-  return result.data[0];
-};
-
 const createVerificationCode = async (request, h) => {
   try {
-    const { userId, email: newEmail, verificationId, application } = request.params;
+    const { email: newEmail, verificationId } = request.params;
 
-    const { rowCount } = await checkEmailAddressInIDM(userId, newEmail, application);
+    const { data: checkEmailResults } = await helpers.usersRepo.checkEmailAddress(verificationId, newEmail);
 
-    if (rowCount > 0) throw new EmailChangeError('Email address already in use', 409);
+    if (checkEmailResults.length > 0) throw new EmailChangeError('Email address already in use', 409);
 
     const filter = {
       email_change_verification_id: verificationId,
@@ -58,9 +44,9 @@ const createVerificationCode = async (request, h) => {
       verification_code: helpers.createDigitCode()
     };
 
-    const { rowCount: updateRowCount, verification_code: verificationCode } = await repo.update(filter, data);
+    const { rowCount, verification_code: verificationCode } = await helpers.emailChangeRepo.update(filter, data);
 
-    if (updateRowCount !== 1) {
+    if (rowCount !== 1) {
       throw new EmailChangeError(`Email change verification record update error, id:${verificationId}`, 500);
     }
     return h.response({ data: { verificationCode }, error: null }).code(200);
@@ -71,7 +57,7 @@ const createVerificationCode = async (request, h) => {
 };
 
 const checkVerificationCode = async (request, h) => {
-  const { userId, verificationCode, application } = request.params;
+  const { userId, verificationCode } = request.params;
 
   try {
     const filter = {
@@ -81,9 +67,11 @@ const checkVerificationCode = async (request, h) => {
     };
     const data = { date_verified: moment().format('YYYY-MM-DD HH:mm:ss') };
 
-    const { rowCount, new_email_address: newEmail } = await repo.update(filter, data);
+    const { rowCount, new_email_address: newEmail } = await helpers.emailChangeRepo.update(filter, data);
 
     if (rowCount !== 1) throw new EmailChangeError('Email change verification code has expired or is incorrect', 409);
+
+    const { application } = await helpers.usersRepo.findById(userId);
 
     await helpers.updateIDM(userId, newEmail, application);
 
@@ -95,10 +83,8 @@ const checkVerificationCode = async (request, h) => {
 };
 
 module.exports = {
-  repo,
   EmailChangeError,
   startChangeEmailAddress,
-  checkEmailAddressInIDM,
   createVerificationCode,
   checkVerificationCode
 };
