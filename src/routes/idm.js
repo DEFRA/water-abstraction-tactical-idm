@@ -11,12 +11,13 @@ const apiConfig = {
 const resetController = require('../controllers/reset');
 const UsersController = require('../controllers/user')(apiConfig);
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
+const statusController = require('../controllers/status');
 
 module.exports = [
   {
     method: 'GET',
     path: '/status',
-    handler: () => 'ok',
+    handler: statusController.getStatus,
     options: {
       auth: false,
       description: 'Status placeholder'
