@@ -2,30 +2,11 @@ const helpers = require('../lib/helpers');
 const uuid = require('uuid/v4');
 const moment = require('moment');
 const { pool } = require('../lib/connectors/db');
-const DB = require('./connectors/db');
 const { EmailChangeError } = require('../controllers/change-email');
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
+const UsersRepository = require('./repos/users-repo');
 
-class UsersRespository extends Repository {
-  findById (userId) {
-    const user = this.find({ user_id: userId });
-    return user.data[0];
-  }
-  checkEmailAddress (verificationId, newEmail) {
-    const query = `SELECT user_name FROM idm.users u
-      JOIN (
-        SELECT application
-        FROM idm.users u
-        JOIN idm.change_email_verification v ON v.user_id = u.user_id
-        WHERE verification_id=$1
-      ) v ON v.application=u.application
-      WHERE u.user_name=$2`;
-
-    return DB.query(query, [verificationId, newEmail]);
-  }
-};
-
-const usersRepo = new UsersRespository({
+const usersRepo = new UsersRepository({
   connection: pool,
   table: 'idm.users',
   primaryKey: 'user_id'

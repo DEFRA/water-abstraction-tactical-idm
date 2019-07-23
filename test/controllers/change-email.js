@@ -80,7 +80,7 @@ experiment('change email controller', async () => {
     afterEach(async () => sandbox.restore());
 
     test('throw error if email address is already in use', async () => {
-      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [{ user_name: 'new-email@domain.com' }] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, rows: [{ user_name: 'new-email@domain.com' }] });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;
       expect(args[0].data).to.be.null();
@@ -90,7 +90,7 @@ experiment('change email controller', async () => {
     });
 
     test('logger.error to be called with error', async () => {
-      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [{ user_name: 'new-email@domain.com' }] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, rows: [{ user_name: 'new-email@domain.com' }] });
       await controller.createVerificationCode(request, h);
       const args = logger.error.lastCall.args;
       expect(args[0]).to.be.an.error(controller.EmailChangeError);
@@ -98,7 +98,7 @@ experiment('change email controller', async () => {
     });
 
     test('throw error if does not update 1 record', async () => {
-      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, rows: [] });
       helpers.emailChangeRepo.update.returns({ rowCount: 0, verification_code: '123456' });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;
@@ -109,7 +109,7 @@ experiment('change email controller', async () => {
     });
 
     test('happy path - return verification code', async () => {
-      helpers.usersRepo.checkEmailAddress.returns({ err: null, data: [] });
+      helpers.usersRepo.checkEmailAddress.returns({ err: null, rows: [] });
       helpers.emailChangeRepo.update.returns({ rowCount: 1, verification_code: '123456' });
       await controller.createVerificationCode(request, h);
       const args = h.response.lastCall.args;

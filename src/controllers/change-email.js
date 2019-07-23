@@ -41,7 +41,7 @@ const createVerificationCode = async (request, h) => {
   try {
     const { email: newEmail, verificationId } = request.params;
 
-    const { data: checkEmailResults } = await helpers.usersRepo.checkEmailAddress(verificationId, newEmail);
+    const { rows: checkEmailResults } = await helpers.usersRepo.checkEmailAddress(verificationId, newEmail);
 
     if (checkEmailResults.length > 0) throw new EmailChangeError('Email address already in use', 409);
 
