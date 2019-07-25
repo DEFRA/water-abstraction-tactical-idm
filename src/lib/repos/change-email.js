@@ -31,7 +31,7 @@ class ChangeEmailRepository extends Repository {
       authenticated: true
     };
     const data = {
-      new_email_address: newEmail,
+      new_email_address: newEmail.trim().toLowerCase(),
       verification_code: createDigitCode()
     };
 
