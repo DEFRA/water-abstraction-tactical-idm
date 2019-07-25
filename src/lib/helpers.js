@@ -72,9 +72,22 @@ function makeURIRequestWithBody (uri, method, data) {
   });
 }
 
+/**
+ * Generates a random digit of the specified length (default length = 6)
+ * @param {Number} length - the length of the random code
+ * @return {String} - the random code
+ */
+const createDigitCode = (length = 6) => {
+  const addFactor = Math.pow(10, length - 1);
+  const multiplyBy = addFactor * 9;
+
+  return Math.floor(addFactor + Math.random() * multiplyBy);
+};
+
 module.exports = {
   createHash,
   compareHash,
   makeURIRequest,
-  makeURIRequestWithBody
+  makeURIRequestWithBody,
+  createDigitCode
 };
