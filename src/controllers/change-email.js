@@ -1,6 +1,6 @@
-const moment = require('moment');
 const { logger } = require('../logger');
 const helpers = require('../lib/change-email-helpers');
+const repos = require('../lib/change-email-repos');
 
 class EmailChangeError extends Error {
   constructor (message, statusCode) {
@@ -19,15 +19,15 @@ class EmailChangeError extends Error {
 const startChangeEmailAddress = async (request, h) => {
   try {
     const { userId, password } = request.payload;
-    const { rowCount } = await helpers.getRecordsByUserId(userId);
+    const { rowCount } = await repos.changeEmailRepo.findByUserId(userId);
 
     if (rowCount > 2) throw new EmailChangeError('Too many email change attempts', 429);
 
     const isAuthenticated = await helpers.authenticateUserById(userId, password);
-    const { email_change_verification_id: verificationId, authenticated } = await helpers.createEmailChangeRecord(userId, isAuthenticated);
-    return h.response({ data: { verificationId, authenticated } }).code(200);
+    const verificationId = await repos.changeEmailRepo.createEmailChangeRecord(userId, isAuthenticated);
+
+    return h.response({ data: { verificationId, authenticated: isAuthenticated } }).code(200);
   } catch (error) {
-    logger.error(error);
     return h.response({ data: null, error }).code(error.statusCode);
   }
 };
@@ -41,25 +41,13 @@ const createVerificationCode = async (request, h) => {
   try {
     const { email: newEmail, verificationId } = request.params;
 
-    const { rows: checkEmailResults } = await helpers.usersRepo.checkEmailAddress(verificationId, newEmail);
+    const { rowCount } = await repos.usersRepo.checkEmailAddress(verificationId, newEmail);
 
-    if (checkEmailResults.length > 0) throw new EmailChangeError('Email address already in use', 409);
+    if (rowCount > 0) throw new EmailChangeError('Email address already in use', 409);
 
-    const filter = {
-      email_change_verification_id: verificationId,
-      date_created: { $gte: moment().subtract(1, 'days').toISOString() },
-      authenticated: true
-    };
-    const data = {
-      new_email_address: newEmail,
-      verification_code: helpers.createDigitCode()
-    };
+    const { err, verificationCode } = await repos.changeEmailRepo.updateEmailChangeRecord(verificationId, newEmail);
+    if (err) throw err;
 
-    const { rowCount, verification_code: verificationCode } = await helpers.emailChangeRepo.update(filter, data);
-
-    if (rowCount !== 1) {
-      throw new EmailChangeError(`Email change verification record update error, id:${verificationId}`, 500);
-    }
     return h.response({ data: { verificationCode }, error: null }).code(200);
   } catch (error) {
     logger.error(error);
@@ -76,22 +64,12 @@ const checkVerificationCode = async (request, h) => {
   const { userId, verificationCode } = request.params;
 
   try {
-    const filter = {
-      user_id: userId,
-      date_created: { $gte: moment().subtract(1, 'days').toISOString() },
-      verification_code: verificationCode
-    };
-    const data = { date_verified: moment().format('YYYY-MM-DD HH:mm:ss') };
-
-    const { rowCount, new_email_address: newEmail } = await helpers.emailChangeRepo.update(filter, data);
-
-    if (rowCount !== 1) throw new EmailChangeError('Email change verification code has expired or is incorrect', 409);
-
+    const { err, newEmail } = await repos.changeEmailRepo.findRecordWithVerificationCode(userId, verificationCode);
+    if (err) throw err;
     await helpers.updateEmailAddress(userId, newEmail);
 
     return h.response({ data: { newEmail }, error: null }).code(200);
   } catch (error) {
-    logger.error(error);
     return h.response({ data: null, error }).code(error.statusCode);
   }
 };

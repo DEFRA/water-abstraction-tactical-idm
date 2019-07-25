@@ -1,9 +1,9 @@
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
 
 class UsersRepository extends Repository {
-  findById (userId) {
-    const user = this.find({ user_id: userId });
-    return user.data[0];
+  async findById (userId) {
+    const user = await this.find({ user_id: userId });
+    return user.rows[0];
   }
   checkEmailAddress (verificationId, newEmail) {
     const query = `SELECT user_name FROM idm.users u
@@ -16,6 +16,11 @@ class UsersRepository extends Repository {
       WHERE u.user_name=$2`;
 
     return this.dbQuery(query, [verificationId, newEmail]);
+  }
+  updateEmailAddress (userId, newEmail) {
+    const filter = { user_id: userId };
+    const data = { user_name: newEmail };
+    return this.update(filter, data);
   }
 };
 
