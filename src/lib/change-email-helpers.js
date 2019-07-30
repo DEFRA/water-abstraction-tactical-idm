@@ -1,6 +1,6 @@
 const helpers = require('./helpers');
 const { EmailChangeError } = require('../controllers/change-email');
-const repos = require('./change-email-repos');
+const repos = require('./repos');
 
 /**
  * Checks password which was entered by user

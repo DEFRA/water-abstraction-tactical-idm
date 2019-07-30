@@ -10,7 +10,7 @@ const apiConfig = {
 
 const resetController = require('../controllers/reset');
 const changeEmailController = require('../controllers/change-email');
-const UsersController = require('../controllers/user')(apiConfig);
+const usersRoutes = require('../controllers/user');
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
 
@@ -24,7 +24,7 @@ module.exports = [
       description: 'Status placeholder'
     }
   },
-  ...UsersController.getRoutes(),
+  ...usersRoutes,
   {
     method: 'PATCH',
     path: '/idm/' + version + '/reset/{application}/{email}',
@@ -33,7 +33,7 @@ module.exports = [
       validate: {
         params: {
           email: Joi.string().email().required(),
-          application: Joi.string().email().required()
+          application: Joi.string().required()
         },
         query: {
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
