@@ -33,7 +33,7 @@ module.exports = [
       validate: {
         params: {
           email: Joi.string().email().required(),
-          application: Joi.string().email().required()
+          application: Joi.string().required()
         },
         query: {
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
