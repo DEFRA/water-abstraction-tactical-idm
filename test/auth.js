@@ -9,13 +9,13 @@
  */
 'use strict';
 const uuidv4 = require('uuid/v4');
-const { experiment, test, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
+const { experiment, test, before, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
+const { deleteTestUsers } = require('./test-helpers');
 
 const { expect } = require('@hapi/code');
 const server = require('../index');
 
 let createdEmails = [];
-let testUserIds = [];
 
 async function createUser (email, password, application = 'water_vml') {
   createdEmails.push(email);
@@ -27,7 +27,10 @@ async function createUser (email, password, application = 'water_vml') {
     payload: {
       user_name: email,
       password,
-      application
+      application,
+      user_data: {
+        unitTest: true
+      }
     }
   };
 
@@ -40,28 +43,8 @@ async function createUser (email, password, application = 'water_vml') {
   expect(payload.error).to.equal(null);
   expect(payload.data.user_id).to.be.a.number();
 
-  testUserIds.push(payload.data.user_id);
-
   // Return user ID for future tests
   return payload.data.user_id;
-}
-
-const createRequest = (method = 'GET', url = '/idm/1.0/user') => ({
-  method,
-  url,
-  headers: { Authorization: process.env.JWT_TOKEN }
-});
-
-const createDeleteRequest = id => createRequest('DELETE', `/idm/1.0/user/${id}`);
-
-async function deleteUsers () {
-  const requests = testUserIds
-    .map(createDeleteRequest)
-    .map(request => server.inject(request));
-
-  await Promise.all(requests);
-
-  testUserIds = [];
 }
 
 async function getUser (userId) {
@@ -89,6 +72,10 @@ const buildRequest = (email, password, application) => ({
 });
 
 experiment('Test authentication API', () => {
+  before(async () => {
+    await deleteTestUsers();
+  });
+
   beforeEach(async ({ context }) => {
     createdEmails = [];
     context.email = 'unit-test-user@example.com';
@@ -98,7 +85,7 @@ experiment('Test authentication API', () => {
   });
 
   afterEach(async () => {
-    await deleteUsers();
+    await deleteTestUsers();
   });
 
   test('The API should allow authentication with correct password', async ({ context }) => {

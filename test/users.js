@@ -13,6 +13,7 @@ const { experiment, test, beforeEach, after } = exports.lab = require('@hapi/lab
 const { get } = require('lodash');
 const { expect } = require('@hapi/code');
 const server = require('../index');
+const { deleteTestUsers } = require('./test-helpers');
 
 // A user is always created with testEmailOne as part of the beforeEach.
 const testEmailOne = 'test1@example.com';
@@ -29,25 +30,17 @@ const createRequest = (method = 'GET', url = '/idm/1.0/user') => ({
   headers: { Authorization: process.env.JWT_TOKEN }
 });
 
-const createDeleteRequest = id => createRequest('DELETE', `/idm/1.0/user/${id}`);
 const createGetRequest = id => createRequest('GET', `/idm/1.0/user/${id}`);
-
-async function deleteTestUsers () {
-  const requests = testUserIds
-    .map(createDeleteRequest)
-    .map(request => server.inject(request));
-
-  await Promise.all(requests);
-
-  testUserIds = [];
-}
 
 const createTestUser = async (userName = testEmailOne, application = 'water_vml') => {
   const request = createRequest('POST');
   request.payload = {
     user_name: userName,
     application,
-    password: uuidv4()
+    password: uuidv4(),
+    user_data: {
+      unitTest: true
+    }
   };
 
   const response = await server.inject(request);
