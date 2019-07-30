@@ -1,6 +1,6 @@
-const UsersRepository = require('./repos/users');
-const ChangeEmailRepository = require('./repos/change-email');
-const { pool } = require('../lib/connectors/db');
+const UsersRepository = require('./users');
+const ChangeEmailRepository = require('./change-email');
+const { pool } = require('../../lib/connectors/db');
 
 const usersRepo = new UsersRepository({
   connection: pool,

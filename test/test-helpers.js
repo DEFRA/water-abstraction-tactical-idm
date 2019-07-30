@@ -22,7 +22,13 @@ const deleteUser = async userID => {
   return result;
 };
 
+const deleteTestUsers = () => {
+  const query = `DELETE FROM idm.users WHERE user_data->>'unitTest'='true'`;
+  return DB.query(query);
+};
+
 module.exports = {
   createUser,
-  deleteUser
+  deleteUser,
+  deleteTestUsers
 };

@@ -1,6 +1,6 @@
 const controller = require('../../src/controllers/change-email');
 const helpers = require('../../src/lib/change-email-helpers');
-const repos = require('../../src/lib/change-email-repos');
+const repos = require('../../src/lib/repos');
 const { expect } = require('@hapi/code');
 const { test, experiment, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
 const sinon = require('sinon');

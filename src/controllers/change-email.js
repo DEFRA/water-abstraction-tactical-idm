@@ -1,6 +1,6 @@
 const { logger } = require('../logger');
 const helpers = require('../lib/change-email-helpers');
-const repos = require('../lib/change-email-repos');
+const repos = require('../lib/repos');
 
 class EmailChangeError extends Error {
   constructor (message, statusCode) {

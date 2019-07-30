@@ -1,5 +1,5 @@
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
-const repos = require('../../../src/lib/change-email-repos');
+const repos = require('../../../src/lib/repos');
 const helpers = require('../../../src/lib/helpers');
 const { expect } = require('@hapi/code');
 const { test, experiment, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
