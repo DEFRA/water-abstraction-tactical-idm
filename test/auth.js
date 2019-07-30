@@ -15,6 +15,7 @@ const { expect } = require('@hapi/code');
 const server = require('../index');
 
 let createdEmails = [];
+let testUserIds = [];
 
 async function createUser (email, password, application = 'water_vml') {
   createdEmails.push(email);
@@ -39,18 +40,28 @@ async function createUser (email, password, application = 'water_vml') {
   expect(payload.error).to.equal(null);
   expect(payload.data.user_id).to.be.a.number();
 
+  testUserIds.push(payload.data.user_id);
+
   // Return user ID for future tests
   return payload.data.user_id;
 }
 
+const createRequest = (method = 'GET', url = '/idm/1.0/user') => ({
+  method,
+  url,
+  headers: { Authorization: process.env.JWT_TOKEN }
+});
+
+const createDeleteRequest = id => createRequest('DELETE', `/idm/1.0/user/${id}`);
+
 async function deleteUsers () {
-  const requests = createdEmails.map(email => ({
-    method: 'DELETE',
-    url: `/idm/1.0/user/${email}`,
-    headers: { Authorization: process.env.JWT_TOKEN }
-  })).map(request => server.inject(request));
+  const requests = testUserIds
+    .map(createDeleteRequest)
+    .map(request => server.inject(request));
 
   await Promise.all(requests);
+
+  testUserIds = [];
 }
 
 async function getUser (userId) {
