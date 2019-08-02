@@ -1,5 +1,7 @@
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
 
+const { getNow } = require('./date-helpers');
+
 const mapRole = row => row.role;
 const mapGroup = row => row.group;
 
@@ -49,29 +51,43 @@ class UsersRepository extends Repository {
     return rows.map(mapRole);
   }
 
-  checkEmailAddress (verificationId, newEmail) {
+  /**
+   * Checks whether the new email address already exists in the
+   * users table for the application related to the supplied verification ID
+   * @param  {String} verificationId - GUID from email_change_verification table
+   * @param  {String} newEmail       - the desired new email address
+   * @return {<Promise>}             - returns user if found
+   */
+  async findExistingByVerificationId (verificationId, newEmail) {
+    const email = newEmail.trim().toLowerCase();
+
     const query = `SELECT user_name FROM idm.users u
       JOIN (
         SELECT application
         FROM idm.users u
-        JOIN idm.change_email_verification v ON v.user_id = u.user_id
-        WHERE verification_id=$1
+        JOIN idm.email_change_verification v ON v.user_id = u.user_id
+        WHERE email_change_verification_id=$1
       ) v ON v.application=u.application
       WHERE u.user_name=$2`;
 
-    return this.dbQuery(query, [verificationId, newEmail]);
+    const { rows: [user] } = await this.dbQuery(query, [verificationId, email]);
+    return user;
   }
 
   /**
    * Sets the email address of the user with the specified ID to a new value
    * @param  {Number} userId   - user ID
    * @param  {String} newEmail - the new email address
-   * @return {Promise}
+   * @return {Promise<Object>} - user record
    */
-  updateEmailAddress (userId, newEmail) {
+  async updateEmailAddress (userId, newEmail, refDate) {
     const filter = { user_id: userId };
-    const data = { user_name: newEmail };
-    return this.update(filter, data);
+    const data = {
+      user_name: newEmail.toLowerCase().trim(),
+      date_updated: getNow(refDate)
+    };
+    const { rows: [user] } = await this.update(filter, data);
+    return user;
   }
 };
 
