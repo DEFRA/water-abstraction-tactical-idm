@@ -4,7 +4,10 @@ const { test, experiment } = exports.lab = require('@hapi/lab').script();
 
 const allNumberCodeRegex = /[\d|\w]/;
 
-experiment('change email helpers', async () => {
+const plainText = 'Test1234';
+const hash = '$2b$10$H8Vd7SlmsEZ..N/.wDIlXOUeMD0oAjnJi8zmKL6Rt3H69ITpMUhOK';
+
+experiment('helpers', () => {
   experiment('createDigitCode', async () => {
     test('creates a random 6 digit code by default', async () => {
       const result = helpers.createDigitCode();
@@ -16,6 +19,18 @@ experiment('change email helpers', async () => {
       const result = helpers.createDigitCode(4);
       expect(result).to.match(allNumberCodeRegex);
       expect(result.toString()).to.have.length(4);
+    });
+  });
+
+  experiment('testPassword', () => {
+    test('when password matches hash, resolves true', async () => {
+      const result = await helpers.testPassword(plainText, hash);
+      expect(result).to.equal(true);
+    });
+
+    test('when password does not match hash, resolves false', async () => {
+      const result = await helpers.testPassword('wrong', hash);
+      expect(result).to.equal(false);
     });
   });
 });

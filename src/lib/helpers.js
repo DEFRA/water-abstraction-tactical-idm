@@ -1,5 +1,7 @@
 var bcrypt = require('bcrypt');
 
+const util = require('util');
+
 // Contains generic functions unrelated to a specific component
 const rp = require('request-promise-native').defaults({
   proxy: null,
@@ -84,10 +86,19 @@ const createDigitCode = (length = 6) => {
   return Math.floor(addFactor + Math.random() * multiplyBy);
 };
 
+/**
+ * Compares password with a hash
+ * @param {String} password - plain text password
+ * @param {String} hash
+ * @return {Promise<Boolean>} resolves with boolean true if password OK
+ */
+const testPassword = util.promisify(bcrypt.compare);
+
 module.exports = {
   createHash,
   compareHash,
   makeURIRequest,
   makeURIRequestWithBody,
-  createDigitCode
+  createDigitCode,
+  testPassword
 };
