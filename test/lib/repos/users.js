@@ -1,3 +1,4 @@
+const moment = require('moment');
 const UsersRepository = require('../../../src/lib/repos/users');
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
 const { pool } = require('../../../src/lib/connectors/db');
@@ -6,6 +7,8 @@ const { test, experiment, beforeEach, afterEach } = exports.lab = require('@hapi
 const sinon = require('sinon');
 const sandbox = sinon.createSandbox();
 
+const now = moment();
+
 const usersRepo = new UsersRepository({
   connection: pool,
   table: 'idm.users',
@@ -13,6 +16,10 @@ const usersRepo = new UsersRepository({
 });
 
 experiment('UsersRepository', async () => {
+  afterEach(async () => {
+    sandbox.restore();
+  });
+
   experiment('findById', () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'find').returns({ rows: [{ first: 'element' }] });
@@ -32,33 +39,84 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('checkEmailAddress', async () => {
+  experiment('findGroups', async () => {
     beforeEach(async () => {
-      sandbox.stub(Repository.prototype, 'dbQuery');
+      sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{ group: 'group_1' }] });
+    });
+
+    test('calls dbQuery with correct params', async () => {
+      await usersRepo.findGroups(1234);
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal([1234]);
+    });
+
+    test('maps returned rows to an an array of strings', async () => {
+      const result = await usersRepo.findGroups(1234);
+      expect(result).to.equal(['group_1']);
+    });
+  });
+
+  experiment('findRoles', async () => {
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{ role: 'role_1' }] });
+    });
+
+    test('calls dbQuery with correct params', async () => {
+      await usersRepo.findRoles(1234);
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal([1234]);
+    });
+
+    test('maps returned rows to an an array of strings', async () => {
+      const result = await usersRepo.findRoles(1234);
+      expect(result).to.equal(['role_1']);
+    });
+  });
+
+  experiment('findExistingByVerificationId', async () => {
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{
+        user_id: 1
+      }] });
     });
 
     afterEach(async () => sandbox.restore());
 
     test('calls this.dbQuery with correct params', async () => {
-      await usersRepo.checkEmailAddress('cd6d-jub4-8jg5', 'test@domain.com');
+      await usersRepo.findExistingByVerificationId('cd6d-jub4-8jg5', 'test@domain.com');
       const [, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(params[0]).to.equal('cd6d-jub4-8jg5');
       expect(params[1]).to.equal('test@domain.com');
+    });
+
+    test('resolves with the first user record found', async () => {
+      const result = await usersRepo.findExistingByVerificationId('cd6d-jub4-8jg5', 'test@domain.com');
+      expect(result).to.be.an.object();
     });
   });
 
   experiment('updateEmailAddress', async () => {
     beforeEach(async () => {
-      sandbox.stub(Repository.prototype, 'update');
+      sandbox.stub(Repository.prototype, 'update').resolves({ rows: [{
+        user_id: 'user_1'
+      }] });
     });
 
     afterEach(async () => sandbox.restore());
 
     test('calls this.update with correct params', async () => {
-      await usersRepo.updateEmailAddress(1234, 'test@domain.com');
+      await usersRepo.updateEmailAddress(1234, 'test@domain.com', now);
       const [filter, data] = Repository.prototype.update.lastCall.args;
       expect(filter).to.equal({ user_id: 1234 });
-      expect(data).to.equal({ user_name: 'test@domain.com' });
+      expect(data.user_name).to.equal('test@domain.com');
+      expect(data.date_updated).to.equal(now.format());
+    });
+
+    test('resolves with first updated record', async () => {
+      const user = await usersRepo.updateEmailAddress(1234, 'test@domain.com');
+      expect(user.user_id).to.equal('user_1');
     });
   });
 });
