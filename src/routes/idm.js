@@ -9,7 +9,6 @@ const apiConfig = {
 };
 
 const resetController = require('../controllers/reset');
-const changeEmailController = require('../controllers/change-email');
 const usersRoutes = require('../controllers/user');
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
@@ -59,51 +58,10 @@ module.exports = [
     }
   },
   {
-    method: 'POST',
-    path: '/idm/' + version + '/user/change-email-address/start',
-    handler: changeEmailController.startChangeEmailAddress,
-    options: {
-      description: 'Get verification code for email change and send to new email',
-      validate: {
-        payload: {
-          userId: Joi.number().positive().required(),
-          password: Joi.string().required()
-        }
-      }
-    }
-  },
-  {
-    method: 'PATCH',
-    path: '/idm/' + version + '/user/change-email-address/create-code',
-    handler: changeEmailController.createVerificationCode,
-    options: {
-      description: 'Get verification code for email change and send to new email',
-      validate: {
-        payload: {
-          verificationId: Joi.string().guid().required(),
-          email: Joi.string().email().required()
-        }
-      }
-    }
-  },
-  {
-    method: 'POST',
-    path: '/idm/' + version + '/user/change-email-address/complete',
-    handler: changeEmailController.checkVerificationCode,
-    options: {
-      description: 'Check verification code submitted by user, if matches, update user email',
-      validate: {
-        payload: {
-          userId: Joi.number().positive().required(),
-          securityCode: Joi.number().positive().required()
-        }
-      }
-    }
-  },
-  {
     method: '*',
     path: '/', // catch-all path
     handler: (request, h) => h.code(404)
   },
-  KpiApi.findManyRoute()
+  KpiApi.findManyRoute(),
+  ...require('../modules/change-email/routes')
 ];
