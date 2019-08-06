@@ -89,6 +89,75 @@ class UsersRepository extends Repository {
     const { rows: [user] } = await this.update(filter, data);
     return user;
   }
+
+  /** Deletes all role and groups associations for the given user id
+   *
+   * @param {Number} userId The id of the user whose roles and groups are to be deleted
+   */
+  deleteRoles (userId) {
+    const rolesQuery = `delete from idm.user_roles where user_id = $1`;
+    const groupsQuery = `delete from idm.user_groups where user_id = $1`;
+
+    return Promise.all([
+      this.dbQuery(rolesQuery, [userId]),
+      this.dbQuery(groupsQuery, [userId])
+    ]);
+  }
+
+  /**
+   * Assigns roles to a user by creating records in the
+   * idm.user_roles type by joining the GUID ids from the idm.roles
+   * tables.
+   *
+   * @param {Number} userId The user to assign the roles to
+   * @param {String} application The application the roles are associcated with
+   * @param {Array} roles The array of role names to assign to the user
+   */
+  async createRoles (userId, application, roles) {
+    const query = `
+      insert into idm.user_roles(user_role_id, user_id, role_id)
+      select gen_random_uuid(), $1, r.role_id
+      from idm.roles r
+      where r.application = $2
+      and r.role = any ($3);`;
+
+    return this.dbQuery(query, [userId, application, roles]);
+  }
+
+  /**
+   * Assigns groups to a user by creating records in the
+   * idm.user_groups type by joining the GUID ids from the idm.groups
+   * tables.
+   *
+   * @param {Number} userId The user to assign the groups to
+   * @param {String} application The application the groups are associcated with
+   * @param {Array} groups The array of group names to assign to the user
+   */
+  async createGroups (userId, application, groups) {
+    const query = `
+      insert into idm.user_groups(user_group_id, user_id, group_id)
+      select gen_random_uuid(), $1, g.group_id
+      from idm.groups g
+      where g.application = $2
+      and g.group = any ($3);`;
+
+    return this.dbQuery(query, [userId, application, groups]);
+  }
+
+  async findUserWithRoles (userId) {
+    const [ user, roles, groups ] = await Promise.all([
+      this.findById(userId),
+      this.findRoles(userId),
+      this.findGroups(userId)
+    ]);
+
+    if (user) {
+      user.roles = roles;
+      user.groups = groups;
+    }
+
+    return user;
+  }
 };
 
 module.exports = UsersRepository;

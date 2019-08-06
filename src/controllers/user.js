@@ -58,15 +58,9 @@ const restApi = new HAPIRestAPI({
 restApi.routes.findOneRoute.handler = async (request, h) => {
   const { id } = request.params;
 
-  const [ user, roles, groups ] = await Promise.all([
-    usersRepo.findById(id),
-    usersRepo.findRoles(id),
-    usersRepo.findGroups(id)
-  ]);
+  const user = await usersRepo.findUserWithRoles(id);
 
   if (user) {
-    user.roles = roles;
-    user.groups = groups;
     return { error: null, data: omit(user, 'password') };
   }
 
