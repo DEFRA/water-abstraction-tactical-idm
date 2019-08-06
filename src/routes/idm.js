@@ -12,6 +12,7 @@ const resetController = require('../controllers/reset');
 const usersRoutes = require('../controllers/user');
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
+const userRolesRoutes = require('./user-roles');
 
 module.exports = [
   {
@@ -63,5 +64,6 @@ module.exports = [
     handler: (request, h) => h.code(404)
   },
   KpiApi.findManyRoute(),
-  ...require('../modules/change-email/routes')
+  ...require('../modules/change-email/routes'),
+  ...userRolesRoutes
 ];
