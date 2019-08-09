@@ -48,6 +48,16 @@ const getStatus = async (request, h) => {
   }
 };
 
+const validateEmailChange = (userId, emailChange) => {
+  if (isRateLimitExceeded(emailChange)) {
+    throw Boom.tooManyRequests(`User ${userId} - too many email change attempts`);
+  }
+
+  if (isVerified(emailChange)) {
+    throw Boom.locked(`User ${userId} - already verified`);
+  }
+};
+
 /**
  * Starts email change process
  */
@@ -59,13 +69,7 @@ const postStartEmailChange = async (request, h) => {
     // Rate limit requests
     const existing = await repos.changeEmailRepo.findOneByUserId(userId);
 
-    if (isRateLimitExceeded(existing)) {
-      throw Boom.tooManyRequests(`User ${userId} - too many email change attempts`);
-    }
-
-    if (isVerified(existing)) {
-      throw Boom.locked(`User ${userId} - already verified`);
-    }
+    validateEmailChange(userId, existing);
 
     // Upsert email change record
     const data = await repos.changeEmailRepo.create(userId, email);
@@ -106,16 +110,10 @@ const postSecurityCode = async (request, h) => {
       throw Boom.notFound(`User ${userId} - no record found, may have expired`);
     }
 
-    if (isRateLimitExceeded(existing)) {
-      throw Boom.tooManyRequests(`User ${userId} - too many email change attempts`);
-    }
+    validateEmailChange(userId, existing);
 
     if (securityCode !== existing.security_code) {
       throw Boom.unauthorized(`User ${userId} - wrong security code`);
-    }
-
-    if (isVerified(existing)) {
-      throw Boom.locked(`User ${userId} - already verified`);
     }
 
     // Update verified status of email change record
