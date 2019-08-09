@@ -1,6 +1,14 @@
 const repos = require('../../lib/repos');
 const Boom = require('@hapi/boom');
-const helpers = require('../../lib/helpers');
+const { get } = require('lodash');
+
+const isRateLimitExceeded = row =>
+  get(row, 'attempts') >= 3 || get(row, 'security_code_attempts') >= 3;
+
+const isVerified = row =>
+  get(row, 'date_verified', null) !== null;
+
+const isLocked = row => isRateLimitExceeded(row) || isVerified(row);
 
 /**
  * If the error is a Boom error, return a { data, error } response and
@@ -11,120 +19,125 @@ const helpers = require('../../lib/helpers');
  */
 const errorHandler = (error, h) => {
   if (error.isBoom) {
+    console.log(error.message);
     return h.response({ data: null, error: error.message }).code(error.output.statusCode);
   }
   throw error;
 };
 
 /**
- * Starts email change process:
- *   Checks number of attempts in last 24hrs
- *   Checks password entered
- *   Creates record in email change verifications table
+ * Gets status of email change process
  */
-const startChangeEmailAddress = async (request, h) => {
+const getStatus = async (request, h) => {
+  const { userId } = request.params;
   try {
-    const { userId, password } = request.payload;
-
-    // Find user
-    const user = await repos.usersRepo.findById(userId);
-    if (!user) {
-      throw Boom.notFound(`User ${userId} not found`);
+    const data = await repos.changeEmailRepo.findOneByUserId(userId);
+    if (!data) {
+      throw Boom.notFound(`No email change record found for user ${userId}`);
     }
-
-    // Rate limit requests
-    const { rowCount } = await repos.changeEmailRepo.findByUserId(userId);
-    if (rowCount > 2) throw Boom.tooManyRequests(`Too many email change attempts - user ${userId}`);
-
-    // Authenticate user
-    const isAuthenticated = await helpers.testPassword(password, user.password);
-
-    // Create verification record
-    const verificationId = await repos.changeEmailRepo.createEmailChangeRecord(userId, isAuthenticated);
-
     return {
-      data: { verificationId, authenticated: isAuthenticated },
+      data: {
+        userId,
+        email: data.new_email_address,
+        isLocked: isLocked(data)
+      },
       error: null
     };
-  } catch (error) {
-    return errorHandler(error, h);
+  } catch (err) {
+    return errorHandler(err, h);
   }
 };
 
 /**
- * Second step of email change process:
- *   Checks whether email address is already in use
- *   Updates record in email change verifications table with newEmail and code
+ * Starts email change process
  */
-const createVerificationCode = async (request, h) => {
+const postStartEmailChange = async (request, h) => {
+  const { userId } = request.params;
+  const { email } = request.payload;
+
   try {
-    const { email: newEmail, verificationId } = request.payload;
+    // Rate limit requests
+    const existing = await repos.changeEmailRepo.findOneByUserId(userId);
+
+    if (isRateLimitExceeded(existing)) {
+      throw Boom.tooManyRequests(`User ${userId} - too many email change attempts`);
+    }
+
+    if (isVerified(existing)) {
+      throw Boom.locked(`User ${userId} - already verified`);
+    }
+
+    // Upsert email change record
+    const data = await repos.changeEmailRepo.create(userId, email);
 
     // Check for an existing user with the new email address
     const existingUser = await repos.usersRepo
-      .findExistingByVerificationId(verificationId, newEmail);
-
+      .findInSameApplication(userId, email);
     if (existingUser) {
-      throw Boom.conflict(`User ${newEmail} already exists`);
-    }
-
-    // Set the email address in the verification record
-    const verificationCode = await repos.changeEmailRepo
-      .updateEmailChangeRecord(verificationId, newEmail);
-
-    if (!verificationCode) {
-      throw Boom.unauthorized(`Verification ${verificationId} could not be updated`);
+      throw Boom.conflict(`User ${userId} - ${email} already exists`);
     }
 
     return {
-      data: { verificationCode },
+      data: {
+        userId,
+        securityCode: data.security_code
+      },
       error: null
     };
-  } catch (error) {
-    return errorHandler(error, h);
+  } catch (err) {
+    return errorHandler(err, h);
   }
 };
 
 /**
- * Final step of email change process:
- *   Checks whether there is a record with the code provided that is > 24hrs old
- *   Update the user_name in the users table
+ * Completes email change process
  */
-const checkVerificationCode = async (request, h) => {
-  const { userId, securityCode } = request.payload;
+const postSecurityCode = async (request, h) => {
+  const { userId } = request.params;
+  const { securityCode } = request.payload;
 
   try {
-    // Find email verification record
-    const emailChange = await repos.changeEmailRepo
-      .findOneByVerificationCode(userId, securityCode);
+    await repos.changeEmailRepo.incrementSecurityCodeAttempts(userId);
 
-    if (!emailChange) {
-      await repos.changeEmailRepo.incrementAttemptCounter(userId);
-      throw Boom.unauthorized(`Invalid/expired security code for user ${userId}`);
+    // Rate limit requests to 3 per day
+    const existing = await repos.changeEmailRepo.findOneByUserId(userId);
+
+    if (!existing) {
+      throw Boom.notFound(`User ${userId} - no record found, may have expired`);
     }
+
+    if (isRateLimitExceeded(existing)) {
+      throw Boom.tooManyRequests(`User ${userId} - too many email change attempts`);
+    }
+
+    if (securityCode !== existing.security_code) {
+      throw Boom.unauthorized(`User ${userId} - wrong security code`);
+    }
+
+    if (isVerified(existing)) {
+      throw Boom.locked(`User ${userId} - already verified`);
+    }
+
+    // Update verified status of email change record
+    await repos.changeEmailRepo.updateVerified(userId, securityCode);
 
     // Update the user
-    const { new_email_address: newEmail } = emailChange;
-    const user = await repos.usersRepo.updateEmailAddress(userId, newEmail);
-
-    if (!user) {
-      throw Boom.notFound(`User ${userId} code could not be found`);
-    }
-
-    // Set date verified to prevent reuse
-    await repos.changeEmailRepo.updateDateVerified(emailChange);
+    const user = await repos.usersRepo.updateEmailAddress(userId, existing.new_email_address);
 
     return {
-      data: { newEmail, userId },
+      data: {
+        userId: user.user_id,
+        email: user.user_name
+      },
       error: null
     };
-  } catch (error) {
-    return errorHandler(error, h);
+  } catch (err) {
+    return errorHandler(err, h);
   }
 };
 
 module.exports = {
-  startChangeEmailAddress,
-  createVerificationCode,
-  checkVerificationCode
+  postStartEmailChange,
+  postSecurityCode,
+  getStatus
 };
