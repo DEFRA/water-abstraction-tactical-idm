@@ -1,105 +1,69 @@
 const Repository = require('@envage/hapi-pg-rest-api/src/repository');
-const moment = require('moment');
-const { pick } = require('lodash');
-const uuid = require('uuid/v4');
 const { createDigitCode } = require('../helpers');
-const { getYesterday, getNow } = require('./date-helpers');
 
 class ChangeEmailRepository extends Repository {
-  findByUserId (userId) {
-    return this.find({
-      user_id: userId,
-      date_created: { $gte: moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss') }
-    });
-  }
-  async createEmailChangeRecord (userId, authenticated, refDate) {
-    const data = {
-      email_change_verification_id: uuid(),
-      user_id: userId,
-      new_email_address: null,
-      authenticated,
-      verification_code: null,
-      date_created: getNow(refDate),
-      date_verified: null
-    };
-    const { rows: [{ email_change_verification_id: verificationId }] } = await this.create(data);
-    return verificationId;
-  }
-
   /**
-   * Updates the email change verification record with a generated
-   * random verification code and the desired new email address
-   * @param  {String}  verificationId - email_change_verification_id GUID
-   * @param  {String}  newEmail       - the new email address
-   * @return {Promise<String>} resolves with code on success
+   * Finds an email change record for todays date by user ID
+   * @param  {Number}  userId - the user ID
+   * @return {Promise<Object>} - row data if found
    */
-  async updateEmailChangeRecord (verificationId, newEmail, refDate) {
-    const verificationCode = createDigitCode();
-
-    const filter = {
-      email_change_verification_id: verificationId,
-      date_created: { $gte: getYesterday(refDate) },
-      authenticated: true,
-      verification_code: null
-    };
-    const data = {
-      new_email_address: newEmail.trim().toLowerCase(),
-      verification_code: verificationCode
-    };
-
-    const { rowCount } = await this.update(filter, data);
-
-    return rowCount ? verificationCode : undefined;
-  }
-
-  /**
-   * Finds a valid email change record for the supplied user ID and security
-   * code.
-   * @param  {Number}  userId           - the user ID from users table
-   * @param  {String}  verificationCode - 6 digit security code
-   * @return {Promise<Object>}            returns 1 record if found
-   */
-  async findOneByVerificationCode (userId, verificationCode, refDate) {
-    const filter = {
-      user_id: userId,
-      verification_code: verificationCode,
-      date_created: { $gte: getYesterday(refDate) },
-      date_verified: null,
-      attempts: {
-        $lt: 3
-      },
-      authenticated: true
-    };
-    const { rows: [row] } = await this.find(filter);
+  async findOneByUserId (userId) {
+    const query = `
+      SELECT * FROM idm.email_change WHERE user_id=$1
+        AND reference_date=CURRENT_DATE
+    `;
+    const params = [userId];
+    const { rows: [ row ] } = await this.dbQuery(query, params);
     return row;
   }
 
   /**
-   * Increments attempt counter.  This could affect multiple records
-   * as we don't know which row they are attempting to verify
-   * @param  {Number} userId
-   * @return {<Promise>}
+   * Sets or updates the email address for the email address change record
+   * relating to the supplied userId and today's date
+   * @param {Number} userId   - the user ID
+   * @param {String} newEmail - the user's new email address
+   * @return {Promise<Object>} - row data if found
    */
-  incrementAttemptCounter (userId) {
-    const query = `UPDATE idm.email_change_verification
-      SET attempts=attempts+1
-      WHERE user_id=$1
-        AND date_verified IS NULL
-        AND date_created >= NOW() - INTERVAL '1 DAY'`;
-    const params = [ userId ];
+  async create (userId, newEmail) {
+    const query = `
+      INSERT INTO idm.email_change
+        ( email_change_id, user_id, new_email_address, security_code,
+          reference_date, date_created, date_updated, attempts,
+          security_code_attempts )
+        VALUES (gen_random_uuid(), $1, $2, $3, CURRENT_DATE, NOW(), NOW(), 1, 0)
+      ON CONFLICT (user_id, reference_date)
+        DO UPDATE SET new_email_address=EXCLUDED.new_email_address,
+          security_code=EXCLUDED.security_code,
+          date_updated=NOW(), attempts=email_change.attempts+1
+          WHERE email_change.date_verified IS NULL
+      RETURNING *
+      `;
+    const securityCode = createDigitCode();
+    const params = [ userId, newEmail, securityCode ];
+    const { rows: [ row ] } = await this.dbQuery(query, params);
+    return row;
+  }
+
+  async incrementSecurityCodeAttempts (userId) {
+    const query = `
+        UPDATE idm.email_change
+          SET security_code_attempts=security_code_attempts+1
+          WHERE user_id=$1 AND reference_date=CURRENT_DATE
+    `;
+    const params = [userId];
     return this.dbQuery(query, params);
   }
 
-  /**
-   * Sets the date verified for the supplied email change record
-   * @param  {Object} row - an email change record row
-   * @return {<Promise>}
-   */
-  updateDateVerified (row, refDate) {
-    const filter = pick(row, 'email_change_verification_id');
-    const data = { date_verified: getNow(refDate) };
-    return this.update(filter, data);
+  async updateVerified (userId, securityCode) {
+    const query = `
+        UPDATE idm.email_change
+          SET date_verified=NOW()
+          WHERE user_id=$1 AND reference_date=CURRENT_DATE
+          AND security_code=$2
+    `;
+    const params = [userId, securityCode];
+    return this.dbQuery(query, params);
   }
-};
+}
 
 module.exports = ChangeEmailRepository;

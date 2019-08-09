@@ -53,24 +53,25 @@ class UsersRepository extends Repository {
 
   /**
    * Checks whether the new email address already exists in the
-   * users table for the application related to the supplied verification ID
-   * @param  {String} verificationId - GUID from email_change_verification table
+   * users table for the application related to the supplied user ID
+   * @param  {Number} userId         - the user ID
    * @param  {String} newEmail       - the desired new email address
-   * @return {<Promise>}             - returns user if found
+   * @return {Promise<Object>}       - returns user if found
    */
-  async findExistingByVerificationId (verificationId, newEmail) {
+  async findInSameApplication (userId, newEmail) {
     const email = newEmail.trim().toLowerCase();
 
-    const query = `SELECT user_name FROM idm.users u
+    const query = `SELECT * FROM idm.users u
       JOIN (
-        SELECT application
-        FROM idm.users u
-        JOIN idm.email_change_verification v ON v.user_id = u.user_id
-        WHERE email_change_verification_id=$1
-      ) v ON v.application=u.application
+          SELECT application
+          FROM idm.users u
+          WHERE u.user_id=$1
+      ) u2 ON u.application=u2.application
       WHERE u.user_name=$2`;
 
-    const { rows: [user] } = await this.dbQuery(query, [verificationId, email]);
+    const params = [userId, email];
+
+    const { rows: [user] } = await this.dbQuery(query, params);
     return user;
   }
 
