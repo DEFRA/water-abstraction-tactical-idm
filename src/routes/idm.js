@@ -65,5 +65,6 @@ module.exports = [
   },
   KpiApi.findManyRoute(),
   ...require('../modules/change-email/routes'),
+  ...require('../modules/reauthentication/routes'),
   ...userRolesRoutes
 ];

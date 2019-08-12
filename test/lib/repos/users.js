@@ -75,7 +75,7 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('findExistingByVerificationId', async () => {
+  experiment('findInSameApplication', async () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{
         user_id: 1
@@ -85,14 +85,14 @@ experiment('UsersRepository', async () => {
     afterEach(async () => sandbox.restore());
 
     test('calls this.dbQuery with correct params', async () => {
-      await usersRepo.findExistingByVerificationId('cd6d-jub4-8jg5', 'test@domain.com');
+      await usersRepo.findInSameApplication(1234, 'test@domain.com');
       const [, params] = Repository.prototype.dbQuery.lastCall.args;
-      expect(params[0]).to.equal('cd6d-jub4-8jg5');
+      expect(params[0]).to.equal(1234);
       expect(params[1]).to.equal('test@domain.com');
     });
 
     test('resolves with the first user record found', async () => {
-      const result = await usersRepo.findExistingByVerificationId('cd6d-jub4-8jg5', 'test@domain.com');
+      const result = await usersRepo.findInSameApplication(1234, 'test@domain.com');
       expect(result).to.be.an.object();
     });
   });
