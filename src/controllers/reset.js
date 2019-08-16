@@ -1,4 +1,4 @@
-const idm = require('../lib/idm');
+const repos = require('../lib/repos');
 const moment = require('moment');
 const { get, pick } = require('lodash');
 const uuid = require('uuid/v4');
@@ -26,27 +26,6 @@ const shouldUpdateUserResetGuid = user => {
     return false;
   }
   return true;
-};
-
-const getUser = async (email, application) => {
-  const result = await idm.getUserByUsername(email, application);
-
-  if (result.err) {
-    throw result.err;
-  }
-
-  if (result.data.length !== 1) {
-    throw new UserNotFoundError(`User not found for email ${email}`);
-  }
-  return result.data[0];
-};
-
-const updateResetGuid = async (user, resetGuid) => {
-  const { err } = await idm.updateResetGuid(user.user_id, resetGuid);
-
-  if (err) {
-    throw err;
-  }
 };
 
 const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
@@ -85,13 +64,17 @@ const resetPassword = async (request, h) => {
   const { email, application } = request.params;
 
   try {
-    const user = await getUser(email, application);
+    // Find user
+    const user = await repos.usersRepo.findByUsername(email, application);
+    if (!user) {
+      throw new UserNotFoundError(`User not found for email ${email}`);
+    }
     let resetGuid = user.reset_guid;
 
     if (shouldUpdateUserResetGuid(user)) {
       request.log('info', `user (${user.user_id}) needs a new reset guid`);
       resetGuid = uuid();
-      await updateResetGuid(user, resetGuid);
+      await repos.usersRepo.updateResetGuid(user.user_id, resetGuid);
     }
 
     await sendPasswordResetEmail(user, resetGuid, sender, mode);

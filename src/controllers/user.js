@@ -45,7 +45,8 @@ const restApi = new HAPIRestAPI({
     date_updated: Joi.string().allow(null),
     application: Joi.string(),
     role: Joi.object().allow(null),
-    external_id: Joi.string().allow(null)
+    external_id: Joi.string().allow(null),
+    enabled: Joi.boolean()
   }
 });
 
