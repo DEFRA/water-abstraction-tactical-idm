@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const uuidv4 = require('uuid/v4');
-const { get, pick } = require('lodash');
+const { get, omit } = require('lodash');
 
 const repos = require('../../lib/repos');
 const helpers = require('../../lib/helpers');
@@ -24,6 +24,7 @@ const errorHandler = (err, h) => {
     }).code(401);
   }
   logger.error(`IDM login error`, err);
+  throw err;
 };
 
 /**
@@ -49,10 +50,7 @@ const sendPasswordLockEmail = (user, resetGuid) => {
  */
 const mapUserResponse = user => {
   return {
-    ...pick(user, [
-      'user_id', 'reset_required', 'reset_guid', 'last_login',
-      'bad_logins', 'user_data', 'user_name', 'role', 'enabled'
-    ]),
+    ...omit(user, 'password'),
     err: null
   };
 };
