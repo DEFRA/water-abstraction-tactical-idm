@@ -46,6 +46,17 @@ const createResetPasswordResponse = (user, resetGuid) => ({
   error: null,
   data: Object.assign({ reset_guid: resetGuid }, pick(user, 'user_name', 'user_id'))
 });
+
+const errorHandler = (request, h, error) => {
+  if (error.name === 'UserNotFoundError') {
+    request.log('info', error);
+    return h.response({ data: null, error }).code(404);
+  }
+
+  logger.error('resetPassword error', error);
+  return h.response({ data: null, error }).code(500);
+};
+
 /**
  * Reset password and send email
  * Modes can be:
@@ -81,13 +92,7 @@ const resetPassword = async (request, h) => {
 
     return createResetPasswordResponse(user, resetGuid);
   } catch (error) {
-    if (error.name === 'UserNotFoundError') {
-      request.log('info', error);
-      return h.response({ data: null, error }).code(404);
-    }
-
-    logger.error('resetPassword error', error);
-    return h.response({ data: null, error }).code(500);
+    return errorHandler(request, h, error);
   }
 };
 
