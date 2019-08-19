@@ -58,6 +58,13 @@ const errorHandler = (request, h, error) => {
 };
 
 /**
+ * Checks that the user exists and is enabled
+ * @param  {Object} user
+ * @return {Boolean}
+ */
+const validateUser = user => user && user.enabled;
+
+/**
  * Reset password and send email
  * Modes can be:
  * - reset : user initiated reset process
@@ -77,7 +84,7 @@ const resetPassword = async (request, h) => {
   try {
     // Find user
     const user = await repos.usersRepo.findByUsername(email, application);
-    if (!user) {
+    if (!validateUser(user)) {
       throw new UserNotFoundError(`User not found for email ${email}`);
     }
     let resetGuid = user.reset_guid;

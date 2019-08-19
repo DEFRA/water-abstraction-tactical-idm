@@ -49,6 +49,23 @@ experiment('resetPassword', async () => {
     expect(h.response.args[0][0].data).to.be.null();
     expect(h.response.args[0][0].error.message).to.equal('User not found for email nope@example.com');
   });
+
+  test('returns a 404 for a disabled user', async () => {
+    repos.usersRepo.findByUsername.resolves({
+      user_id: 123,
+      user_name: 'test@example.com',
+      enabled: false
+    });
+
+    const request = getRequest('nope@example.com');
+    const h = getResponseToolkitStub();
+
+    await controller.resetPassword(request, h);
+
+    expect(h.code.args[0][0]).to.equal(404);
+    expect(h.response.args[0][0].data).to.be.null();
+    expect(h.response.args[0][0].error.message).to.equal('User not found for email nope@example.com');
+  });
 });
 
 experiment('resetPassword - when reset guid has not been set before', async () => {
@@ -61,7 +78,8 @@ experiment('resetPassword - when reset guid has not been set before', async () =
     sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
     sandbox.stub(repos.usersRepo, 'findByUsername').resolves({
       user_id: 123,
-      user_name: 'test@example.com'
+      user_name: 'test@example.com',
+      enabled: true
     });
 
     request = getRequest('test@example.com');
@@ -111,7 +129,8 @@ experiment('resetPassword - when reset guid has been updated in the last 24 hour
       user_id: 123,
       user_name: 'test@example.com',
       reset_guid: resetGuid,
-      reset_guid_date_created: moment().subtract(5, 'hours').toISOString()
+      reset_guid_date_created: moment().subtract(5, 'hours').toISOString(),
+      enabled: true
     });
     sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
@@ -158,7 +177,8 @@ experiment('resetPassword - when reset guid was last set over 1 day ago', async 
       user_id: 123,
       user_name: 'test@example.com',
       reset_guid: uuid(),
-      reset_guid_date_created: moment().subtract(25, 'hours').toISOString()
+      reset_guid_date_created: moment().subtract(25, 'hours').toISOString(),
+      enabled: true
     });
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
 
