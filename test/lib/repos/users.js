@@ -119,4 +119,90 @@ experiment('UsersRepository', async () => {
       expect(user.user_id).to.equal('user_1');
     });
   });
+
+  experiment('findByUsername', () => {
+    let result;
+
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery')
+        .resolves({ rows: [{ user_id: 123 }] });
+      result = await usersRepo.findByUsername('mail@example.com', 'water_vml');
+    });
+
+    test('calls this.dbQuery with correct params', async () => {
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal(['mail@example.com', 'water_vml']);
+    });
+
+    test('resolves with the first row found', async () => {
+      expect(result).to.equal({ user_id: 123 });
+    });
+  });
+
+  experiment('incrementLockCount', () => {
+    let result;
+
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery')
+        .resolves({ rows: [{ user_id: 123 }] });
+      result = await usersRepo.incrementLockCount(123);
+    });
+
+    test('calls this.dbQuery with correct params', async () => {
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal([123]);
+    });
+
+    test('resolves with the first row found', async () => {
+      expect(result).to.equal({ user_id: 123 });
+    });
+  });
+
+  experiment('voidCurrentPassword', () => {
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery');
+      await usersRepo.voidCurrentPassword(123, 'reset-guid');
+    });
+
+    test('calls this.dbQuery with correct params', async () => {
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal([123, 'reset-guid']);
+    });
+  });
+
+  experiment('updateResetGuid', () => {
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'update');
+      await usersRepo.updateResetGuid(123, 'reset-guid');
+    });
+
+    test('calls this.update with correct params', async () => {
+      const [ filter, data ] = Repository.prototype.update.lastCall.args;
+      expect(filter).to.equal({ user_id: 123 });
+      expect(data).to.equal({ reset_guid: 'reset-guid' });
+    });
+  });
+
+  experiment('updateAuthenticatedUser', () => {
+    let result;
+
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery')
+        .resolves({ rows: [{ user_id: 123 }] });
+      result = await usersRepo.updateAuthenticatedUser(123);
+    });
+
+    test('calls this.dbQuery with correct params', async () => {
+      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal([123]);
+    });
+
+    test('resolves with the first row found', async () => {
+      expect(result).to.equal({ user_id: 123 });
+    });
+  });
 });

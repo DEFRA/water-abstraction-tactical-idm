@@ -1,6 +1,5 @@
 /* API operations only - NO UI */
 const Joi = require('@hapi/joi');
-const IDM = require('../lib/idm');
 const { version } = require('../../config');
 const { pool } = require('../lib/connectors/db');
 const apiConfig = {
@@ -44,21 +43,6 @@ module.exports = [
     }
   },
   {
-    method: 'POST',
-    path: '/idm/' + version + '/user/login',
-    handler: IDM.loginUser,
-    options: {
-      description: 'Login users, responds with user details',
-      validate: {
-        payload: {
-          user_name: Joi.string().required(),
-          password: Joi.string().required(),
-          application: Joi.string().required()
-        }
-      }
-    }
-  },
-  {
     method: '*',
     path: '/', // catch-all path
     handler: (request, h) => h.code(404)
@@ -66,5 +50,6 @@ module.exports = [
   KpiApi.findManyRoute(),
   ...require('../modules/change-email/routes'),
   ...require('../modules/reauthentication/routes'),
+  ...require('../modules/authenticate/routes'),
   ...userRolesRoutes
 ];
