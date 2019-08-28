@@ -9,7 +9,8 @@
  */
 'use strict';
 const uuidv4 = require('uuid/v4');
-const { experiment, test, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
+const { experiment, test, before, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
+const { deleteTestUsers } = require('./test-helpers');
 
 const { expect } = require('@hapi/code');
 const server = require('../index');
@@ -26,7 +27,10 @@ async function createUser (email, password, application = 'water_vml') {
     payload: {
       user_name: email,
       password,
-      application
+      application,
+      user_data: {
+        unitTest: true
+      }
     }
   };
 
@@ -41,16 +45,6 @@ async function createUser (email, password, application = 'water_vml') {
 
   // Return user ID for future tests
   return payload.data.user_id;
-}
-
-async function deleteUsers () {
-  const requests = createdEmails.map(email => ({
-    method: 'DELETE',
-    url: `/idm/1.0/user/${email}`,
-    headers: { Authorization: process.env.JWT_TOKEN }
-  })).map(request => server.inject(request));
-
-  await Promise.all(requests);
 }
 
 async function getUser (userId) {
@@ -78,6 +72,10 @@ const buildRequest = (email, password, application) => ({
 });
 
 experiment('Test authentication API', () => {
+  before(async () => {
+    await deleteTestUsers();
+  });
+
   beforeEach(async ({ context }) => {
     createdEmails = [];
     context.email = 'unit-test-user@example.com';
@@ -87,7 +85,7 @@ experiment('Test authentication API', () => {
   });
 
   afterEach(async () => {
-    await deleteUsers();
+    await deleteTestUsers();
   });
 
   test('The API should allow authentication with correct password', async ({ context }) => {

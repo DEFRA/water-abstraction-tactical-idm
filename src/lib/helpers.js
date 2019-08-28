@@ -1,5 +1,7 @@
 var bcrypt = require('bcrypt');
 
+const util = require('util');
+
 // Contains generic functions unrelated to a specific component
 const rp = require('request-promise-native').defaults({
   proxy: null,
@@ -72,9 +74,31 @@ function makeURIRequestWithBody (uri, method, data) {
   });
 }
 
+/**
+ * Generates a random digit of the specified length (default length = 6)
+ * @param {Number} length - the length of the random code
+ * @return {String} - the random code
+ */
+const createDigitCode = (length = 6) => {
+  const addFactor = Math.pow(10, length - 1);
+  const multiplyBy = addFactor * 9;
+
+  return Math.floor(addFactor + Math.random() * multiplyBy);
+};
+
+/**
+ * Compares password with a hash
+ * @param {String} password - plain text password
+ * @param {String} hash
+ * @return {Promise<Boolean>} resolves with boolean true if password OK
+ */
+const testPassword = util.promisify(bcrypt.compare);
+
 module.exports = {
   createHash,
   compareHash,
   makeURIRequest,
-  makeURIRequestWithBody
+  makeURIRequestWithBody,
+  createDigitCode,
+  testPassword
 };

@@ -9,9 +9,10 @@ const apiConfig = {
 };
 
 const resetController = require('../controllers/reset');
-const UsersController = require('../controllers/user')(apiConfig);
+const usersRoutes = require('../controllers/user');
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
+const userRolesRoutes = require('./user-roles');
 
 module.exports = [
   {
@@ -23,7 +24,7 @@ module.exports = [
       description: 'Status placeholder'
     }
   },
-  ...UsersController.getRoutes(),
+  ...usersRoutes,
   {
     method: 'PATCH',
     path: '/idm/' + version + '/reset/{application}/{email}',
@@ -62,5 +63,8 @@ module.exports = [
     path: '/', // catch-all path
     handler: (request, h) => h.code(404)
   },
-  KpiApi.findManyRoute()
+  KpiApi.findManyRoute(),
+  ...require('../modules/change-email/routes'),
+  ...require('../modules/reauthentication/routes'),
+  ...userRolesRoutes
 ];
