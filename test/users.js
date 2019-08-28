@@ -10,9 +10,10 @@
 'use strict';
 const uuidv4 = require('uuid/v4');
 const { experiment, test, beforeEach, after } = exports.lab = require('@hapi/lab').script();
-
+const { get } = require('lodash');
 const { expect } = require('@hapi/code');
 const server = require('../index');
+const { deleteTestUsers } = require('./test-helpers');
 
 // A user is always created with testEmailOne as part of the beforeEach.
 const testEmailOne = 'test1@example.com';
@@ -20,33 +21,38 @@ const testEmailOne = 'test1@example.com';
 // This is reserved when needing to add an alternative/extra user
 const testEmailTwo = 'test2@example.com';
 
+// A list of test user IDs
+let testUserIds = [];
+
 const createRequest = (method = 'GET', url = '/idm/1.0/user') => ({
   method,
   url,
   headers: { Authorization: process.env.JWT_TOKEN }
 });
 
-const createDeleteRequest = email => createRequest('DELETE', `/idm/1.0/user/${email}`);
 const createGetRequest = id => createRequest('GET', `/idm/1.0/user/${id}`);
-
-async function deleteTestUsers () {
-  // Find user by email
-  const requests = [
-    createDeleteRequest(testEmailOne),
-    createDeleteRequest(testEmailTwo)
-  ].map(request => server.inject(request));
-  await Promise.all(requests);
-}
 
 const createTestUser = async (userName = testEmailOne, application = 'water_vml') => {
   const request = createRequest('POST');
   request.payload = {
     user_name: userName,
     application,
-    password: uuidv4()
+    password: uuidv4(),
+    user_data: {
+      unitTest: true
+    }
   };
 
-  return server.inject(request);
+  const response = await server.inject(request);
+
+  // Store generated user ID
+  const data = JSON.parse(response.payload);
+  const userId = get(data, 'data.user_id');
+  if (userId) {
+    testUserIds.push(userId);
+  }
+
+  return response;
 };
 
 experiment('Test users API', () => {
@@ -86,16 +92,6 @@ experiment('Test users API', () => {
 
     expect(error).to.equal(null);
     expect(data.user_name).to.equal(testEmailOne);
-  });
-
-  test('The API should get a user by email address', async ({ context }) => {
-    const request = createGetRequest(testEmailOne);
-    const response = await server.inject(request);
-    expect(response.statusCode).to.equal(200);
-
-    const payload = JSON.parse(response.payload);
-    expect(payload.error).to.equal(null);
-    expect(payload.data.user_id).to.equal(context.userId);
   });
 
   test('The API should get a list of users', async () => {
