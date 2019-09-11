@@ -159,6 +159,86 @@ class UsersRepository extends Repository {
 
     return user;
   }
+
+  /**
+   * Finds the user by email address in the given application
+   * @param  {String}  userName    - email addresss
+   * @param  {String}  application - application name
+   * @return {Promise<Object>}       resolves with the user if found
+   */
+  async findByUsername (userName, application) {
+    const query = `
+      select *
+      from idm.users
+      where lower(user_name) = lower($1)
+      and application = $2;`;
+    const params = [userName, application];
+    const { rows: [user] } = await this.dbQuery(query, params);
+    return user;
+  }
+
+  /**
+   * Increments the lock count for the specified user
+   * @param {Number} - userId
+   * @return {Promise<Object>} resolves with the user if found
+   */
+  async incrementLockCount (userId) {
+    const query = `
+      UPDATE idm.users
+        SET bad_logins = COALESCE(bad_logins, 0) + 1, date_updated = NOW()
+        WHERE user_id=$1
+        RETURNING *
+    `;
+    const params = [userId];
+    const { rows: [user] } = await this.dbQuery(query, params);
+    return user;
+  }
+
+  /**
+   * Voids the current users password and sets the reset GUID to the one
+   * supplied
+   * @param  {Number} userId    - the user ID
+   * @param  {String} resetGuid - a new reset GUID
+   * @return {Promise}            resolves when current password is voided
+   */
+  voidCurrentPassword (userId, resetGuid) {
+    const query = `
+      UPDATE idm.users
+        SET password = 'VOID', reset_guid = $2, date_updated = NOW()
+        WHERE user_id = $1
+    `;
+    const params = [userId, resetGuid];
+    return this.dbQuery(query, params);
+  }
+
+  /**
+   * Sets the user's reset GUID
+   * @param  {Number} userId    - the user ID
+   * @param  {String} resetGuid - a new reset GUID
+   * @return {Promise}            resolves when reset GUID is updated
+   */
+  updateResetGuid (userId, resetGuid) {
+    return this.update({ user_id: userId }, { reset_guid: resetGuid });
+  }
+
+  /**
+   * WHen a user successfully authenticates, update their last login time
+   * and reset their lock count
+   * @param  {Number} userId - the user ID
+   * @return {Promise<Object>} resolves with updated user record
+   */
+  async updateAuthenticatedUser (userId) {
+    const query = `
+      update idm.users
+      set bad_logins = 0,
+      last_login = now(),
+      date_updated = now()
+      where user_id = $1
+      returning *;`;
+    const params = [userId];
+    const { rows: [user] } = await this.dbQuery(query, params);
+    return user;
+  };
 };
 
 module.exports = UsersRepository;

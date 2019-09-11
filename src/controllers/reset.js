@@ -1,4 +1,4 @@
-const idm = require('../lib/idm');
+const repos = require('../lib/repos');
 const moment = require('moment');
 const { get, pick } = require('lodash');
 const uuid = require('uuid/v4');
@@ -28,27 +28,6 @@ const shouldUpdateUserResetGuid = user => {
   return true;
 };
 
-const getUser = async (email, application) => {
-  const result = await idm.getUserByUsername(email, application);
-
-  if (result.err) {
-    throw result.err;
-  }
-
-  if (result.data.length !== 1) {
-    throw new UserNotFoundError(`User not found for email ${email}`);
-  }
-  return result.data[0];
-};
-
-const updateResetGuid = async (user, resetGuid) => {
-  const { err } = await idm.updateResetGuid(user.user_id, resetGuid);
-
-  if (err) {
-    throw err;
-  }
-};
-
 const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
   const { err } = await notify.sendPasswordResetEmail({
     email: user.user_name,
@@ -67,6 +46,24 @@ const createResetPasswordResponse = (user, resetGuid) => ({
   error: null,
   data: Object.assign({ reset_guid: resetGuid }, pick(user, 'user_name', 'user_id'))
 });
+
+const errorHandler = (request, h, error) => {
+  if (error.name === 'UserNotFoundError') {
+    request.log('info', error);
+    return h.response({ data: null, error }).code(404);
+  }
+
+  logger.error('resetPassword error', error);
+  return h.response({ data: null, error }).code(500);
+};
+
+/**
+ * Checks that the user exists and is enabled
+ * @param  {Object} user
+ * @return {Boolean}
+ */
+const validateUser = user => user && user.enabled;
+
 /**
  * Reset password and send email
  * Modes can be:
@@ -85,26 +82,24 @@ const resetPassword = async (request, h) => {
   const { email, application } = request.params;
 
   try {
-    const user = await getUser(email, application);
+    // Find user
+    const user = await repos.usersRepo.findByUsername(email, application);
+    if (!validateUser(user)) {
+      throw new UserNotFoundError(`User not found for email ${email}`);
+    }
     let resetGuid = user.reset_guid;
 
     if (shouldUpdateUserResetGuid(user)) {
       request.log('info', `user (${user.user_id}) needs a new reset guid`);
       resetGuid = uuid();
-      await updateResetGuid(user, resetGuid);
+      await repos.usersRepo.updateResetGuid(user.user_id, resetGuid);
     }
 
     await sendPasswordResetEmail(user, resetGuid, sender, mode);
 
     return createResetPasswordResponse(user, resetGuid);
   } catch (error) {
-    if (error.name === 'UserNotFoundError') {
-      request.log('info', error);
-      return h.response({ data: null, error }).code(404);
-    }
-
-    logger.error('resetPassword error', error);
-    return h.response({ data: null, error }).code(500);
+    return errorHandler(request, h, error);
   }
 };
 

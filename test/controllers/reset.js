@@ -3,7 +3,7 @@ const { test, experiment, beforeEach, afterEach } = exports.lab = require('@hapi
 const controller = require('../../src/controllers/reset');
 const sinon = require('sinon');
 const sandbox = sinon.createSandbox();
-const idm = require('../../src/lib/idm');
+const repos = require('../../src/lib/repos');
 const notify = require('../../src/lib/connectors/notify');
 const uuid = require('uuid/v4');
 const moment = require('moment');
@@ -30,17 +30,31 @@ const guidRegex = /[\d|\w]{8}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{12}/;
 
 experiment('resetPassword', async () => {
   beforeEach(async () => {
-    sandbox.stub(idm, 'getUserByUsername');
-    sandbox.stub(idm, 'updateResetGuid').resolves({});
+    sandbox.stub(repos.usersRepo, 'findByUsername');
+    sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
   });
 
   afterEach(async () => sandbox.restore());
 
   test('returns a 404 for an unknown user', async () => {
-    idm.getUserByUsername.resolves({
-      err: null,
-      data: []
+    repos.usersRepo.findByUsername.resolves();
+
+    const request = getRequest('nope@example.com');
+    const h = getResponseToolkitStub();
+
+    await controller.resetPassword(request, h);
+
+    expect(h.code.args[0][0]).to.equal(404);
+    expect(h.response.args[0][0].data).to.be.null();
+    expect(h.response.args[0][0].error.message).to.equal('User not found for email nope@example.com');
+  });
+
+  test('returns a 404 for a disabled user', async () => {
+    repos.usersRepo.findByUsername.resolves({
+      user_id: 123,
+      user_name: 'test@example.com',
+      enabled: false
     });
 
     const request = getRequest('nope@example.com');
@@ -61,13 +75,11 @@ experiment('resetPassword - when reset guid has not been set before', async () =
 
   beforeEach(async () => {
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
-    sandbox.stub(idm, 'updateResetGuid').resolves({});
-    sandbox.stub(idm, 'getUserByUsername').resolves({
-      err: null,
-      data: [{
-        user_id: 123,
-        user_name: 'test@example.com'
-      }]
+    sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
+    sandbox.stub(repos.usersRepo, 'findByUsername').resolves({
+      user_id: 123,
+      user_name: 'test@example.com',
+      enabled: true
     });
 
     request = getRequest('test@example.com');
@@ -79,8 +91,8 @@ experiment('resetPassword - when reset guid has not been set before', async () =
   afterEach(async () => sandbox.restore());
 
   test('the reset guid is updated', async () => {
-    expect(idm.updateResetGuid.args[0][0]).to.equal(123);
-    expect(idm.updateResetGuid.args[0][1]).to.match(guidRegex);
+    expect(repos.usersRepo.updateResetGuid.args[0][0]).to.equal(123);
+    expect(repos.usersRepo.updateResetGuid.args[0][1]).to.match(guidRegex);
   });
 
   test('a message is sent via notify', async () => {
@@ -113,16 +125,14 @@ experiment('resetPassword - when reset guid has been updated in the last 24 hour
     resetGuid = uuid();
     request = getRequest('test@example.com');
 
-    sandbox.stub(idm, 'getUserByUsername').resolves({
-      err: null,
-      data: [{
-        user_id: 123,
-        user_name: 'test@example.com',
-        reset_guid: resetGuid,
-        reset_guid_date_created: moment().subtract(5, 'hours').toISOString()
-      }]
+    sandbox.stub(repos.usersRepo, 'findByUsername').resolves({
+      user_id: 123,
+      user_name: 'test@example.com',
+      reset_guid: resetGuid,
+      reset_guid_date_created: moment().subtract(5, 'hours').toISOString(),
+      enabled: true
     });
-    sandbox.stub(idm, 'updateResetGuid').resolves({});
+    sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
 
     response = await controller.resetPassword(request, getResponseToolkitStub());
@@ -131,7 +141,7 @@ experiment('resetPassword - when reset guid has been updated in the last 24 hour
   afterEach(async () => sandbox.restore());
 
   test('the reset guid is not updated', async () => {
-    expect(idm.updateResetGuid.called).to.be.false();
+    expect(repos.usersRepo.updateResetGuid.called).to.be.false();
   });
 
   test('a message is sent via notify using the existing reset guid', async () => {
@@ -162,15 +172,13 @@ experiment('resetPassword - when reset guid was last set over 1 day ago', async 
   beforeEach(async () => {
     request = getRequest('test@example.com');
 
-    sandbox.stub(idm, 'updateResetGuid').resolves({});
-    sandbox.stub(idm, 'getUserByUsername').resolves({
-      err: null,
-      data: [{
-        user_id: 123,
-        user_name: 'test@example.com',
-        reset_guid: uuid(),
-        reset_guid_date_created: moment().subtract(25, 'hours').toISOString()
-      }]
+    sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
+    sandbox.stub(repos.usersRepo, 'findByUsername').resolves({
+      user_id: 123,
+      user_name: 'test@example.com',
+      reset_guid: uuid(),
+      reset_guid_date_created: moment().subtract(25, 'hours').toISOString(),
+      enabled: true
     });
     sandbox.stub(notify, 'sendPasswordResetEmail').resolves({});
 
@@ -180,8 +188,8 @@ experiment('resetPassword - when reset guid was last set over 1 day ago', async 
   afterEach(async () => sandbox.restore());
 
   test('the reset guid is updated', async () => {
-    expect(idm.updateResetGuid.args[0][0]).to.equal(123);
-    expect(idm.updateResetGuid.args[0][1]).to.match(guidRegex);
+    expect(repos.usersRepo.updateResetGuid.args[0][0]).to.equal(123);
+    expect(repos.usersRepo.updateResetGuid.args[0][1]).to.match(guidRegex);
   });
 
   test('a message is sent via notify', async () => {
