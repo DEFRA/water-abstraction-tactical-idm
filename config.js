@@ -1,4 +1,5 @@
 const testMode = parseInt(process.env.TEST_MODE) === 1;
+const isAcceptanceTestTarget = ['local', 'dev', 'development', 'test', 'preprod'].includes(process.env.NODE_ENV);
 
 module.exports = {
   version: '1.0',
@@ -40,5 +41,7 @@ module.exports = {
   application: {
     water_vml: process.env.BASE_URL || 'http://127.0.0.1:8000',
     water_admin: process.env.ADMIN_BASE_URL || 'http://127.0.0.1:8008'
-  }
+  },
+
+  isAcceptanceTestTarget
 };
