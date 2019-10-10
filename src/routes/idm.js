@@ -12,6 +12,7 @@ const usersRoutes = require('../controllers/user');
 const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
 const statusController = require('../controllers/status');
 const userRolesRoutes = require('./user-roles');
+const acceptanceTestsRoutes = require('../modules/acceptance-tests/routes');
 
 module.exports = [
   {
@@ -51,5 +52,6 @@ module.exports = [
   ...require('../modules/change-email/routes'),
   ...require('../modules/reauthentication/routes'),
   ...require('../modules/authenticate/routes'),
-  ...userRolesRoutes
+  ...userRolesRoutes,
+  ...Object.values(acceptanceTestsRoutes)
 ];
