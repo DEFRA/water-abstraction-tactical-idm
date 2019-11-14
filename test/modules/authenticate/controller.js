@@ -11,7 +11,7 @@ const sandbox = sinon.createSandbox();
 
 const userId = 123;
 
-const email = `mail@example.com`;
+const email = 'mail@example.com';
 
 const createRequest = () => ({
   payload: {

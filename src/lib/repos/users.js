@@ -96,8 +96,8 @@ class UsersRepository extends Repository {
    * @param {Number} userId The id of the user whose roles and groups are to be deleted
    */
   deleteRoles (userId) {
-    const rolesQuery = `delete from idm.user_roles where user_id = $1`;
-    const groupsQuery = `delete from idm.user_groups where user_id = $1`;
+    const rolesQuery = 'delete from idm.user_roles where user_id = $1';
+    const groupsQuery = 'delete from idm.user_groups where user_id = $1';
 
     return Promise.all([
       this.dbQuery(rolesQuery, [userId]),
@@ -146,7 +146,7 @@ class UsersRepository extends Repository {
   }
 
   async findUserWithRoles (userId) {
-    const [ user, roles, groups ] = await Promise.all([
+    const [user, roles, groups] = await Promise.all([
       this.findById(userId),
       this.findRoles(userId),
       this.findGroups(userId)

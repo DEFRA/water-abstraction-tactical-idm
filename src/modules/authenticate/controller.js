@@ -23,7 +23,7 @@ const errorHandler = (err, h) => {
       err: 'Unknown user name or password'
     }).code(401);
   }
-  logger.error(`IDM login error`, err);
+  logger.error('IDM login error', err);
   throw err;
 };
 
