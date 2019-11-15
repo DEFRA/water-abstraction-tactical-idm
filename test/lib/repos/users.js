@@ -46,7 +46,7 @@ experiment('UsersRepository', async () => {
 
     test('calls dbQuery with correct params', async () => {
       await usersRepo.findGroups(1234);
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal([1234]);
     });
@@ -64,7 +64,7 @@ experiment('UsersRepository', async () => {
 
     test('calls dbQuery with correct params', async () => {
       await usersRepo.findRoles(1234);
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal([1234]);
     });
@@ -77,9 +77,11 @@ experiment('UsersRepository', async () => {
 
   experiment('findInSameApplication', async () => {
     beforeEach(async () => {
-      sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{
-        user_id: 1
-      }] });
+      sandbox.stub(Repository.prototype, 'dbQuery').resolves({
+        rows: [{
+          user_id: 1
+        }]
+      });
     });
 
     afterEach(async () => sandbox.restore());
@@ -99,9 +101,11 @@ experiment('UsersRepository', async () => {
 
   experiment('updateEmailAddress', async () => {
     beforeEach(async () => {
-      sandbox.stub(Repository.prototype, 'update').resolves({ rows: [{
-        user_id: 'user_1'
-      }] });
+      sandbox.stub(Repository.prototype, 'update').resolves({
+        rows: [{
+          user_id: 'user_1'
+        }]
+      });
     });
 
     afterEach(async () => sandbox.restore());
@@ -130,7 +134,7 @@ experiment('UsersRepository', async () => {
     });
 
     test('calls this.dbQuery with correct params', async () => {
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal(['mail@example.com', 'water_vml']);
     });
@@ -150,7 +154,7 @@ experiment('UsersRepository', async () => {
     });
 
     test('calls this.dbQuery with correct params', async () => {
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal([123]);
     });
@@ -167,7 +171,7 @@ experiment('UsersRepository', async () => {
     });
 
     test('calls this.dbQuery with correct params', async () => {
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal([123, 'reset-guid']);
     });
@@ -180,7 +184,7 @@ experiment('UsersRepository', async () => {
     });
 
     test('calls this.update with correct params', async () => {
-      const [ filter, data ] = Repository.prototype.update.lastCall.args;
+      const [filter, data] = Repository.prototype.update.lastCall.args;
       expect(filter).to.equal({ user_id: 123 });
       expect(data).to.equal({ reset_guid: 'reset-guid' });
     });
@@ -196,7 +200,7 @@ experiment('UsersRepository', async () => {
     });
 
     test('calls this.dbQuery with correct params', async () => {
-      const [ query, params ] = Repository.prototype.dbQuery.lastCall.args;
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
       expect(query).to.be.a.string();
       expect(params).to.equal([123]);
     });

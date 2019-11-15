@@ -33,12 +33,14 @@ experiment('notify connectors', () => {
       const [uri, options] = helpers.serviceRequest.post.lastCall.args;
       expect(uri).to.equal(`${config.services.water}/notify/password_reset_email`);
       expect(options).to.equal({
-        body: { recipient: params.email,
+        body: {
+          recipient: params.email,
           personalisation: {
             firstname: params.firstName,
             reset_url: `http://127.0.0.1:8000/reset_password_change_password?resetGuid=${params.resetGuid}`
           }
-        } });
+        }
+      });
     });
 
     test('resolves with the response from the POST request', async () => {
@@ -65,12 +67,14 @@ experiment('notify connectors', () => {
       const [uri, options] = helpers.serviceRequest.post.lastCall.args;
       expect(uri).to.equal(`${config.services.water}/notify/password_locked_email`);
       expect(options).to.equal({
-        body: { recipient: params.email,
+        body: {
+          recipient: params.email,
           personalisation: {
             firstname: params.firstName,
             reset_url: `http://127.0.0.1:8000/reset_password_change_password?resetGuid=${params.resetGuid}`
           }
-        } });
+        }
+      });
     });
 
     test('resolves with the response from the POST request', async () => {

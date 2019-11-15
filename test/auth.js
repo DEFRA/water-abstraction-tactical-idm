@@ -22,7 +22,7 @@ async function createUser (email, password, application = 'water_vml') {
 
   const request = {
     method: 'POST',
-    url: `/idm/1.0/user`,
+    url: '/idm/1.0/user',
     headers: { Authorization: process.env.JWT_TOKEN },
     payload: {
       user_name: email,
@@ -60,7 +60,7 @@ async function getUser (userId) {
 
 const buildRequest = (email, password, application) => ({
   method: 'POST',
-  url: `/idm/1.0/user/login`,
+  url: '/idm/1.0/user/login',
   headers: {
     Authorization: process.env.JWT_TOKEN
   },
