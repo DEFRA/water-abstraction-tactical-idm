@@ -13,7 +13,7 @@ class ChangeEmailRepository extends Repository {
         AND reference_date=CURRENT_DATE
     `;
     const params = [userId];
-    const { rows: [ row ] } = await this.dbQuery(query, params);
+    const { rows: [row] } = await this.dbQuery(query, params);
     return row;
   }
 
@@ -39,8 +39,8 @@ class ChangeEmailRepository extends Repository {
       RETURNING *
       `;
     const securityCode = createDigitCode();
-    const params = [ userId, newEmail, securityCode ];
-    const { rows: [ row ] } = await this.dbQuery(query, params);
+    const params = [userId, newEmail, securityCode];
+    const { rows: [row] } = await this.dbQuery(query, params);
     return row;
   }
 

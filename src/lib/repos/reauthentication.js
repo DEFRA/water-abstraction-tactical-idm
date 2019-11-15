@@ -19,7 +19,7 @@ class ReauthenticationRepository {
       RETURNING *
       `;
     const params = [userId];
-    const { rows: [ record ] } = await this.connection.query(query, params);
+    const { rows: [record] } = await this.connection.query(query, params);
     return record;
   }
 
