@@ -6,9 +6,11 @@ const sandbox = sinon.createSandbox();
 const ReauthenticationRepository = require('../../../src/lib/repos/reauthentication');
 
 const userId = 123;
-const response = { rows: [{
-  user_id: userId
-}] };
+const response = {
+  rows: [{
+    user_id: userId
+  }]
+};
 
 experiment('ReauthenticationRepository', async () => {
   let connection, repo;

@@ -22,7 +22,7 @@ const testEmailOne = 'test1@example.com';
 const testEmailTwo = 'test2@example.com';
 
 // A list of test user IDs
-let testUserIds = [];
+const testUserIds = [];
 
 const createRequest = (method = 'GET', url = '/idm/1.0/user') => ({
   method,
