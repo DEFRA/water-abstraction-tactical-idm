@@ -7,7 +7,7 @@ const VALID_PASSWORD = Joi.string().required();
 
 module.exports = [
   {
-    path: `/idm/1.0/user/{userId}/reauthenticate`,
+    path: '/idm/1.0/user/{userId}/reauthenticate',
     method: 'POST',
     handler: controller.postReauthenticate,
     options: {

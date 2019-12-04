@@ -23,6 +23,7 @@ const deleteUser = async userID => {
 };
 
 const deleteTestUsers = () => {
+  // eslint-disable-next-line quotes
   const query = `DELETE FROM idm.users WHERE user_data->>'unitTest'='true'`;
   return DB.query(query);
 };
