@@ -21,10 +21,13 @@ class UsersRepository extends Repository {
   }
 
   async findGroups (userId) {
-    const query = `SELECT g.group FROM idm.users u
-      JOIN idm.user_groups ug ON u.user_id=ug.user_id
-      JOIN idm.groups g ON ug.group_id=g.group_id
-      WHERE u.user_id=$1`;
+    const query = `
+      select g.group
+      from idm.groups g
+        join idm.user_groups ug on ug.group_id = g.group_id
+      where ug.user_id = $1;
+    `;
+
     const { rows } = await this.dbQuery(query, [userId]);
     return rows.map(mapGroup);
   }
@@ -38,15 +41,19 @@ class UsersRepository extends Repository {
    */
   async findRoles (userId) {
     const query = `
-      SELECT r.role FROM idm.users u
-        JOIN idm.user_groups ug ON u.user_id=ug.user_id
-        JOIN idm.group_roles gr ON ug.group_id=gr.group_id
-        JOIN idm.roles r ON gr.role_id = r.role_id
-        WHERE u.user_id=$1
-      UNION SELECT r.role FROM idm.users u
-        JOIN idm.user_roles ur ON u.user_id=ur.user_id
-        JOIN idm.roles r ON ur.role_id=r.role_id
-        WHERE u.user_id=$1`;
+      select r.role
+      from idm.user_groups ug
+        join idm.group_roles gr on ug.group_id = gr.group_id
+        join idm.roles r on gr.role_id = r.role_id
+      where ug.user_id = $1
+
+      union
+
+      select r.role
+      from idm.user_roles ur
+        join idm.roles r on ur.role_id = r.role_id
+      where ur.user_id = $1;
+    `;
     const { rows } = await this.dbQuery(query, [userId]);
     return rows.map(mapRole);
   }
