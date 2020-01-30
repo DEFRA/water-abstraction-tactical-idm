@@ -1,9 +1,9 @@
-const db = require('../../lib/connectors/db');
+const { pool } = require('../../lib/connectors/db');
 const ACCEPTANCE_TEST_SOURCE = 'acceptance-test-setup';
 const config = require('../../../config');
 
 const deleteAcceptanceTestData = async (request, h) => {
-  await db.query(`
+  await pool.query(`
     delete
     from idm.users
     where user_data->>'source' = '${ACCEPTANCE_TEST_SOURCE}';
