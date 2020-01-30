@@ -1,5 +1,5 @@
 require('dotenv').config();
-const pool = require('../src/lib/connectors/db');
+const { pool } = require('../src/lib/connectors/db');
 
 async function run () {
   const { error } = await pool.query('CREATE SCHEMA IF NOT EXISTS idm;');
