@@ -246,6 +246,38 @@ class UsersRepository extends Repository {
     const { rows: [user] } = await this.dbQuery(query, params);
     return user;
   };
+
+  /**
+   * Returns the total registrations by application by month for the a given year
+   * @param  {Number} userId - the user ID
+   * @return {Promise<Object>} resolves with updated user record
+   */
+  async findRegistrationsByMonth (year) {
+    const query = `
+    SELECT 
+        application,
+        EXTRACT(MONTH FROM date_created)::integer AS month, 
+        EXTRACT(YEAR FROM date_created)::integer AS year, 
+        COUNT(user_id) as total
+    FROM idm.users 
+    WHERE 
+        last_login IS NOT NULL AND
+        date_created IS NOT NULL AND
+        EXTRACT(YEAR FROM date_created)::integer = $1
+    GROUP BY application, month, year
+    UNION ALL
+    SELECT 
+        application,
+        0 AS month, 
+        0 AS year, 
+        COUNT(user_id) as total
+    FROM idm.users
+    GROUP BY application  
+    ORDER BY year DESC, month DESC`;
+    const params = [year];
+    const { rows } = await this.dbQuery(query, params);
+    return rows;
+  };
 };
 
 module.exports = UsersRepository;
