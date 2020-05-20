@@ -13,7 +13,6 @@ const repos = require('../../../src/lib/repos');
 const controller = require('../../../src/modules/kpi-reporting/controller');
 
 experiment('/modules/kpi-reporting/controller', () => {
-
   afterEach(async () => {
     sandbox.restore();
   });
