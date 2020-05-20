@@ -27,7 +27,6 @@ const getRegistrations = async (request, h) => {
   try {
     const repoData = await repos.usersRepo.findRegistrationsByMonth();
     if (!repoData) {
-      console.log('in the sphere of errors');
       throw Boom.notFound('No data found from users table');
     }
     const data = mapRegistrations(repoData);
