@@ -9,35 +9,21 @@
 
 const mapRegistrations = (dataList) => {
   const initialValue =
-    [{
-      application: 'water_vml',
-      allTime: {
-        registrations: 0
-      },
-      monthly: []
-    },
-    {
-      application: 'water_admin',
-      allTime: {
-        registrations: 0
-      },
-      monthly: []
-    }];
+    [
+      { application: 'water_vml', allTime: { registrations: 0 }, monthly: [] },
+      { application: 'water_admin', allTime: { registrations: 0 }, monthly: [] }
+    ];
 
   return dataList.reduce((acc, row) => (
     [{
       application: 'water_vml',
-      allTime: {
-        registrations: acc[0].allTime.registrations + (row.application === 'water_vml' ? row.registrations : 0)
-      },
+      allTime: { registrations: acc[0].allTime.registrations + (row.application === 'water_vml' ? row.registrations : 0) },
       monthly: (row.application === 'water_vml' && row.current_year
         ? [...acc[0].monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[0].monthly])
     },
     {
       application: 'water_admin',
-      allTime: {
-        registrations: acc[1].allTime.registrations + (row.application === 'water_admin' ? row.registrations : 0)
-      },
+      allTime: { registrations: acc[1].allTime.registrations + (row.application === 'water_admin' ? row.registrations : 0) },
       monthly: (row.application === 'water_admin' && row.current_year
         ? [...acc[1].monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[1].monthly])
     }]
