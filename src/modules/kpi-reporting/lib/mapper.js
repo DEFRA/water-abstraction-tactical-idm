@@ -10,22 +10,28 @@
 const mapRegistrations = (dataList) => {
   const initialValue =
     [
-      { application: 'water_vml', allTime: { registrations: 0 }, monthly: [] },
-      { application: 'water_admin', allTime: { registrations: 0 }, monthly: [] }
+      { application: 'water_vml', allTime: { registrations: 0 }, currentYear: { registrations: 0, monthly: [] } },
+      { application: 'water_admin', allTime: { registrations: 0 }, currentYear: { registrations: 0, monthly: [] } }
     ];
 
   return dataList.reduce((acc, row) => (
     [{
       application: 'water_vml',
       allTime: { registrations: acc[0].allTime.registrations + (row.application === 'water_vml' ? row.registrations : 0) },
-      monthly: (row.application === 'water_vml' && row.current_year
-        ? [...acc[0].monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[0].monthly])
+      currentYear: {
+        registrations: acc[0].currentYear.registrations + (row.application === 'water_vml' && row.current_year ? row.registrations : 0),
+        monthly: (row.application === 'water_vml' && row.current_year
+          ? [...acc[0].currentYear.monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[0].currentYear.monthly])
+      }
     },
     {
       application: 'water_admin',
       allTime: { registrations: acc[1].allTime.registrations + (row.application === 'water_admin' ? row.registrations : 0) },
-      monthly: (row.application === 'water_admin' && row.current_year
-        ? [...acc[1].monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[1].monthly])
+      currentYear: {
+        registrations: acc[1].currentYear.registrations + (row.application === 'water_admin' && row.current_year ? row.registrations : 0),
+        monthly: (row.application === 'water_admin' && row.current_year
+          ? [...acc[1].currentYear.monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[1].currentYear.monthly])
+      }
     }]
   ), initialValue);
 };

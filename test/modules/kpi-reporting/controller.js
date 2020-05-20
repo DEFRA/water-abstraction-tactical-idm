@@ -68,9 +68,11 @@ experiment('/modules/kpi-reporting/controller', () => {
         const response = await controller.getRegistrations();
         expect(response.data[0].allTime.registrations).to.equal(2);
         expect(response.data[1].allTime.registrations).to.equal(4);
-        expect(response.data[0].monthly[0].registrations).to.equal(1);
+        expect(response.data[0].currentYear.registrations).to.equal(1);
+        expect(response.data[0].currentYear.monthly[0].registrations).to.equal(1);
         expect(response.data[0].allTime.registrations).to.equal(2);
-        expect(response.data[1].monthly[0].registrations).to.equal(2);
+        expect(response.data[1].currentYear.registrations).to.equal(2);
+        expect(response.data[1].currentYear.monthly[0].registrations).to.equal(2);
         expect(response.data[1].allTime.registrations).to.equal(4);
         expect(response.error).to.equal(null);
       });
