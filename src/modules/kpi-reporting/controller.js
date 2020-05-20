@@ -1,6 +1,6 @@
 const repos = require('../../lib/repos');
 const Boom = require('@hapi/boom');
-
+const { mapRegistrations } = require('./lib/mapper');
 /**
  * If the error is a Boom error, return a { data, error } response and
  * relevant HTTP code. Otherwise rethrow
@@ -17,16 +17,20 @@ const errorHandler = (error, h) => {
 };
 
 /**
- * Gets an array of registrations by month by application for a given year
- * and the total number of users by application is appended to the end of the array
+ * Registrations KPI data for KPI UI for the service
+ * @param {*} request
+ * @param {*} h
+ * @return {Array} returns an array of objects listing the registrations counted by
+ * application for all time then broken down by month for the current year
  */
 const getRegistrations = async (request, h) => {
-  const { year } = request.params;
   try {
-    const data = await repos.usersRepo.findRegistrationsByMonth(year);
-    if (!data) {
+    const repoData = await repos.usersRepo.findRegistrationsByMonth();
+    if (!repoData) {
+      console.log('in the sphere of errors');
       throw Boom.notFound('No data found from users table');
     }
+    const data = mapRegistrations(repoData);
     return {
       data,
       error: null

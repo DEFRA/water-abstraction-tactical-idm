@@ -252,30 +252,20 @@ class UsersRepository extends Repository {
    * @param  {Number} userId - the user ID
    * @return {Promise<Object>} resolves with updated user record
    */
-  async findRegistrationsByMonth (year) {
+  async findRegistrationsByMonth () {
     const query = `
-    SELECT 
-        application,
-        EXTRACT(MONTH FROM date_created)::integer AS month, 
-        EXTRACT(YEAR FROM date_created)::integer AS year, 
-        COUNT(user_id) as total
-    FROM idm.users 
-    WHERE 
-        last_login IS NOT NULL AND
-        date_created IS NOT NULL AND
-        EXTRACT(YEAR FROM date_created)::integer = $1
-    GROUP BY application, month, year
-    UNION ALL
-    SELECT 
-        application,
-        0 AS month, 
-        0 AS year, 
-        COUNT(user_id) as total
+    SELECT application, EXTRACT(MONTH FROM date_created)::integer AS month, COUNT(user_id)::integer as registrations, 
+    CASE 
+      WHEN EXTRACT(YEAR FROM date_created)::integer = date_part('year', CURRENT_DATE) 
+      THEN true ELSE false 
+    END AS current_year,
+    date_part('year', CURRENT_DATE) AS year
     FROM idm.users
-    GROUP BY application  
-    ORDER BY year DESC, month DESC`;
-    const params = [year];
-    const { rows } = await this.dbQuery(query, params);
+    WHERE 
+    last_login IS NOT NULL 
+    AND date_created IS NOT NULL 
+    GROUP BY application, EXTRACT(MONTH FROM date_created)::integer, current_year`;
+    const { rows } = await this.dbQuery(query);
     return rows;
   };
 };
