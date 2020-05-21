@@ -254,9 +254,9 @@ class UsersRepository extends Repository {
    */
   async findRegistrationsByMonth () {
     const query = `
-    SELECT application, EXTRACT(MONTH FROM date_created)::integer AS month, COUNT(user_id)::integer as registrations, 
+    SELECT application, date_part('month', date_created)::integer AS month, COUNT(user_id)::integer as registrations, 
     CASE 
-      WHEN EXTRACT(YEAR FROM date_created)::integer = date_part('year', CURRENT_DATE) 
+      WHEN date_part('year', date_created)::integer = date_part('year', CURRENT_DATE) 
       THEN true ELSE false 
     END AS current_year,
     date_part('year', CURRENT_DATE) AS year
@@ -264,7 +264,7 @@ class UsersRepository extends Repository {
     WHERE 
     last_login IS NOT NULL 
     AND date_created IS NOT NULL 
-    GROUP BY application, EXTRACT(MONTH FROM date_created)::integer, current_year`;
+    GROUP BY application, month, year, current_year`;
     const { rows } = await this.dbQuery(query);
     return rows;
   };
