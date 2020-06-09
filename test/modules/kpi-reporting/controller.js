@@ -27,10 +27,11 @@ experiment('/modules/kpi-reporting/controller', () => {
       };
       beforeEach(async () => {
         sandbox.stub(repos.usersRepo, 'findRegistrationsByMonth').resolves();
-        await controller.getRegistrations(request, h);
       });
       test('returns an error when no data found', async () => {
-        expect(h.response.lastCall.args[0].error).to.equal('No data found from users table');
+        const response = await controller.getRegistrations(request, h);
+        expect(response.output.payload.message).to.equal('No data found from users table');
+        expect(response.output.statusCode).to.equal(404);
       });
     });
 
