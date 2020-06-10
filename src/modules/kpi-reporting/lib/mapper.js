@@ -1,4 +1,32 @@
 'use-strict';
+const { groupBy, mapValues, omit } = require('lodash');
+
+/**
+ * Sums the total number of registrations in all rows
+ * @param {Array} rows
+ * @return {Number}
+ */
+const getRegistrationCount = rows => rows.reduce((acc, row) => acc + row.registrations, 0);
+
+/**
+ * Maps a group of application rows into groups for all time/current year
+ * @param {Array} arr - a list of applications by month
+ * @param {String} application - the application name
+ * @return {Object} the data in the desired shape
+ */
+const mapGroup = (arr, application) => {
+  const currentYear = arr.filter(row => row.current_year);
+  return {
+    application,
+    allTime: {
+      registrations: getRegistrationCount(arr)
+    },
+    currentYear: {
+      registrations: getRegistrationCount(currentYear),
+      monthly: currentYear.map(row => { return { ...omit(row, ['current_year', 'application']) }; })
+    }
+  };
+};
 
 /**
  * Maps users regisatration repo by application counting the total registrations of all time
@@ -8,32 +36,14 @@
  */
 
 const mapRegistrations = (dataList) => {
-  const initialValue =
-    [
-      { application: 'water_vml', allTime: { registrations: 0 }, currentYear: { registrations: 0, monthly: [] } },
-      { application: 'water_admin', allTime: { registrations: 0 }, currentYear: { registrations: 0, monthly: [] } }
-    ];
+  // Group by application name
+  const groups = groupBy(dataList, row => row.application);
 
-  return dataList.reduce((acc, row) => (
-    [{
-      application: 'water_vml',
-      allTime: { registrations: acc[0].allTime.registrations + (row.application === 'water_vml' ? row.registrations : 0) },
-      currentYear: {
-        registrations: acc[0].currentYear.registrations + (row.application === 'water_vml' && row.current_year ? row.registrations : 0),
-        monthly: (row.application === 'water_vml' && row.current_year
-          ? [...acc[0].currentYear.monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[0].currentYear.monthly])
-      }
-    },
-    {
-      application: 'water_admin',
-      allTime: { registrations: acc[1].allTime.registrations + (row.application === 'water_admin' ? row.registrations : 0) },
-      currentYear: {
-        registrations: acc[1].currentYear.registrations + (row.application === 'water_admin' && row.current_year ? row.registrations : 0),
-        monthly: (row.application === 'water_admin' && row.current_year
-          ? [...acc[1].currentYear.monthly, { month: row.month, year: row.year, registrations: row.registrations }] : [...acc[1].currentYear.monthly])
-      }
-    }]
-  ), initialValue);
+  // Map each group
+  const mappedGroups = mapValues(groups, mapGroup);
+
+  // Return as array
+  return Object.values(mappedGroups);
 };
 
 exports.mapRegistrations = mapRegistrations;
