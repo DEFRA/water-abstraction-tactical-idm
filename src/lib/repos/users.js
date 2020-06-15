@@ -246,6 +246,28 @@ class UsersRepository extends Repository {
     const { rows: [user] } = await this.dbQuery(query, params);
     return user;
   };
+
+  /**
+   * Returns the total registrations by application by month for the a given year
+   * @param  {Number} userId - the user ID
+   * @return {Promise<Object>} resolves with updated user record
+   */
+  async findRegistrationsByMonth () {
+    const query = `
+    SELECT 
+    application, 
+    date_part('month', date_created)::integer AS month, 
+    COUNT(user_id)::integer AS registrations,
+    date_part('year', date_created) = date_part('year', CURRENT_DATE) AS current_year
+    FROM idm.users
+    WHERE 
+    last_login IS NOT NULL 
+    AND date_created IS NOT NULL
+    AND application IN ('water_vml', 'water_admin')
+    GROUP BY application, month, current_year`;
+    const { rows } = await this.dbQuery(query);
+    return rows;
+  };
 };
 
 module.exports = UsersRepository;

@@ -209,4 +209,28 @@ experiment('UsersRepository', async () => {
       expect(result).to.equal({ user_id: 123 });
     });
   });
+
+  experiment('findRegistrationsByMonth', () => {
+    let result;
+    const data = [
+      { application: 'water_vml', registrations: 1, month: 2 },
+      { application: 'water_vml', registrations: 1, month: 2 }
+    ];
+
+    beforeEach(async () => {
+      sandbox.stub(Repository.prototype, 'dbQuery')
+        .resolves({ rows: data });
+      result = await usersRepo.findRegistrationsByMonth();
+    });
+
+    test('calls this.dbQuery with no params', async () => {
+      const [query, params] = Repository.prototype.dbQuery.lastCall.args;
+      expect(query).to.be.a.string();
+      expect(params).to.equal(undefined);
+    });
+
+    test('resolves with an array of objects', async () => {
+      expect(result).to.equal(data);
+    });
+  });
 });
