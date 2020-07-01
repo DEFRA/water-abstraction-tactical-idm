@@ -53,5 +53,6 @@ module.exports = [
   ...require('../modules/reauthentication/routes'),
   ...require('../modules/authenticate/routes'),
   ...userRolesRoutes,
-  ...Object.values(acceptanceTestsRoutes)
+  ...Object.values(acceptanceTestsRoutes),
+  ...require('../modules/kpi-reporting/routes')
 ];
