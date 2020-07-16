@@ -15,10 +15,7 @@ const getRegistrations = async (request, h) => {
     return Boom.notFound('No data found from users table');
   }
   const data = mapRegistrations(repoData);
-  return {
-    data,
-    error: null
-  };
+  return { data };
 };
 
 module.exports = {
