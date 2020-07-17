@@ -38,27 +38,28 @@ experiment('/modules/kpi-reporting/controller', () => {
     experiment('when data is returned', () => {
       const repoData = [
         {
-          application: 'water_vml',
-          registrations: 1,
+          month: 12,
+          internal: 1,
+          external: 2,
           current_year: false
         },
         {
-          application: 'water_vml',
-          registrations: 1,
-          current_year: true,
-          month: 1
+          month: 3,
+          internal: 3,
+          external: 3,
+          current_year: true
         },
         {
-          application: 'water_admin',
-          registrations: 2,
-          current_year: true,
-          month: 1
+          month: 2,
+          internal: 1,
+          external: 1,
+          current_year: true
         },
         {
-          application: 'water_admin',
-          registrations: 2,
-          current_year: false,
-          month: 1
+          month: 1,
+          internal: 2,
+          external: 2,
+          current_year: true
         }
       ];
 
@@ -66,16 +67,18 @@ experiment('/modules/kpi-reporting/controller', () => {
         sandbox.stub(repos.usersRepo, 'findRegistrationsByMonth').resolves(repoData);
       });
       test('returns the correct array of objects', async () => {
-        const response = await controller.getRegistrations();
-        expect(response.data[0].allTime.registrations).to.equal(2);
-        expect(response.data[1].allTime.registrations).to.equal(4);
-        expect(response.data[0].currentYear.registrations).to.equal(1);
-        expect(response.data[0].currentYear.monthly[0].registrations).to.equal(1);
-        expect(response.data[0].allTime.registrations).to.equal(2);
-        expect(response.data[1].currentYear.registrations).to.equal(2);
-        expect(response.data[1].currentYear.monthly[0].registrations).to.equal(2);
-        expect(response.data[1].allTime.registrations).to.equal(4);
-        expect(response.error).to.equal(null);
+        const { data } = await controller.getRegistrations();
+        expect(data.totals.allTime).to.equal(15);
+        expect(data.totals.ytd).to.equal(12);
+        expect(data.monthly.length).to.equal(3);
+        expect(data.monthly[0].month).to.equal('March');
+        expect(data.monthly[0].internal).to.equal(3);
+        expect(data.monthly[0].external).to.equal(3);
+        expect(data.monthly[0].year).to.equal(2020);
+        expect(data.monthly[1].month).to.equal('February');
+        expect(data.monthly[1].internal).to.equal(1);
+        expect(data.monthly[1].external).to.equal(1);
+        expect(data.monthly[1].year).to.equal(2020);
       });
     });
   });
