@@ -255,16 +255,17 @@ class UsersRepository extends Repository {
   async findRegistrationsByMonth () {
     const query = `
     SELECT 
-    application, 
-    date_part('month', date_created)::integer AS month, 
-    COUNT(user_id)::integer AS registrations,
+    date_part('month', date_created)::integer AS month,
+    SUM(CASE WHEN application = 'water_admin' THEN 1 ELSE 0 END)::integer AS internal,
+    SUM(CASE WHEN application = 'water_vml' THEN 1 ELSE 0 END)::integer AS external,
     date_part('year', date_created) = date_part('year', CURRENT_DATE) AS current_year
     FROM idm.users
-    WHERE 
+    WHERE
+    application IN ('water_vml', 'water_admin') AND
     last_login IS NOT NULL 
-    AND date_created IS NOT NULL
-    AND application IN ('water_vml', 'water_admin')
-    GROUP BY application, month, current_year`;
+    AND date_created IS NOT NULL 
+    GROUP BY month, current_year
+    ORDER BY current_year asc, month desc;`;
     const { rows } = await this.dbQuery(query);
     return rows;
   };
