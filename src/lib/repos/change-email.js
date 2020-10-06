@@ -25,19 +25,14 @@ class ChangeEmailRepository extends Repository {
    * @return {Promise<Object>} - row data if found
    */
   async create (userId, newEmail) {
-    const query = `
-      INSERT INTO idm.email_change
+    const query = `INSERT INTO idm.email_change
         ( email_change_id, user_id, new_email_address, security_code,
           reference_date, date_created, date_updated, attempts,
           security_code_attempts )
-        VALUES (gen_random_uuid(), $1, $2, $3, CURRENT_DATE, NOW(), NOW(), 1, 0)
-      ON CONFLICT (user_id, reference_date)
-        DO UPDATE SET new_email_address=EXCLUDED.new_email_address,
+        VALUES (gen_random_uuid(), $1, $2, $3, CURRENT_DATE, NOW(), NOW(), 1, 0) ON CONFLICT (user_id, reference_date) DO UPDATE SET new_email_address=EXCLUDED.new_email_address,
           security_code=EXCLUDED.security_code,
           date_updated=NOW(), attempts=email_change.attempts+1
-          WHERE email_change.date_verified IS NULL
-      RETURNING *
-      `;
+          WHERE email_change.date_verified IS NULL RETURNING *;`;
     const securityCode = createDigitCode();
     const params = [userId, newEmail, securityCode];
     const { rows: [row] } = await this.dbQuery(query, params);
@@ -45,22 +40,18 @@ class ChangeEmailRepository extends Repository {
   }
 
   async incrementSecurityCodeAttempts (userId) {
-    const query = `
-        UPDATE idm.email_change
+    const query = `UPDATE idm.email_change
           SET security_code_attempts=security_code_attempts+1
-          WHERE user_id=$1 AND reference_date=CURRENT_DATE
-    `;
+          WHERE user_id=$1 AND reference_date=CURRENT_DATE;`;
     const params = [userId];
     return this.dbQuery(query, params);
   }
 
   async updateVerified (userId, securityCode) {
-    const query = `
-        UPDATE idm.email_change
+    const query = `UPDATE idm.email_change
           SET date_verified=NOW()
           WHERE user_id=$1 AND reference_date=CURRENT_DATE
-          AND security_code=$2
-    `;
+          AND security_code=$2;`;
     const params = [userId, securityCode];
     return this.dbQuery(query, params);
   }
