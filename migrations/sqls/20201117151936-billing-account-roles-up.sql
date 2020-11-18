@@ -1,4 +1,4 @@
-/* add new role to the water_admin application for managing agreements */
+/* add new role to the water_admin application for managing billing accounts */
 insert into idm.roles
   select
     public.gen_random_uuid(),
