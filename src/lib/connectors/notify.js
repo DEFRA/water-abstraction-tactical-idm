@@ -60,9 +60,9 @@ function sendPasswordResetEmail (params, mode = 'reset') {
   const personalisation = {
     firstName,
     resetUrl: getPasswordResetUrl(resetGuid, userApplication),
-    createUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
-    shareUrl: `${process.env.BASE_URL}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
-    loginUrl: `${process.env.BASE_URL}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
+    createUrl: `${application.water_vml}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=create_password`,
+    shareUrl: `${application.water_vml}/create-password?resetGuid=${resetGuid}&utm_source=system&utm_medium=email&utm_campaign=share_access`,
+    loginUrl: `${application.water_vml}/signin?utm_source=system&utm_medium=email&utm_campaign=send_login`,
     sender
   };
   const messageRefs = {
