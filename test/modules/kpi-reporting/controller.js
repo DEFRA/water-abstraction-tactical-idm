@@ -74,11 +74,11 @@ experiment('/modules/kpi-reporting/controller', () => {
         expect(data.monthly[0].month).to.equal('March');
         expect(data.monthly[0].internal).to.equal(3);
         expect(data.monthly[0].external).to.equal(3);
-        expect(data.monthly[0].year).to.equal(2020);
+        expect(data.monthly[0].year).to.equal(new Date().getFullYear());
         expect(data.monthly[1].month).to.equal('February');
         expect(data.monthly[1].internal).to.equal(1);
         expect(data.monthly[1].external).to.equal(1);
-        expect(data.monthly[1].year).to.equal(2020);
+        expect(data.monthly[1].year).to.equal(new Date().getFullYear());
       });
     });
   });
