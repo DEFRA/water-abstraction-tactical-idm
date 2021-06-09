@@ -1,6 +1,6 @@
 {
   "name": "water-abstraction-tactical-idm",
-  "version": "1.76.0",
+  "version": "2.0.0",
   "description": "Tactical identity management for the water service",
   "main": "index.js",
   "repository": {
