@@ -24,12 +24,12 @@ insert into idm.group_roles
   where g.application = 'water_admin'
   and g.group in ('super', 'psc', 'nps', 'billing_and_data');
 
--- Remove "charge_version_workflow_editor" permission from NPS group
+-- Remove "charge_version_workflow_editor" and "manage_billing_accounts" role from NPS group
 delete from idm.group_roles where group_role_id in (
   select group_role_id from idm.group_roles gr
     join idm.roles r on gr.role_id=r.role_id
     join idm.groups g on gr.group_id=g.group_id
-    where r.role='charge_version_workflow_editor'
+    where r.role in ('charge_version_workflow_editor', 'manage_billing_accounts') 
       and r.application='water_admin'
       and g.group='nps'
 );
