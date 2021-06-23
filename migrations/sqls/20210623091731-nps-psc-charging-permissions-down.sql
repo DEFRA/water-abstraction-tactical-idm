@@ -19,7 +19,7 @@ insert into idm.group_roles
   where g.application = 'water_admin'
   and g.group in ('super', 'billing_and_data');
 
--- Restore "charge_version_workflow_editor" and "manage_billing_accounts" role to NPS group
+-- Restore roles to NPS group
 insert into idm.group_roles
   select
     public.gen_random_uuid() as group_role_id,
@@ -28,7 +28,7 @@ insert into idm.group_roles
     now() as date_created,
     now() as date_updated
   from idm.groups g
-  join idm.roles r on r.role in ('charge_version_workflow_editor', 'manage_billing_accounts')
+  join idm.roles r on r.role in ('charge_version_workflow_editor', 'manage_billing_accounts', 'manage_agreements')
   where g.application = 'water_admin'
   and g.group in ('nps');
 
