@@ -66,6 +66,6 @@ ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 -- Records of users
 -- ----------------------------
 BEGIN;
-INSERT INTO "users" VALUES (9, 'test1@example.com', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
-INSERT INTO "users" VALUES (10, 'test2@example.com', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
+INSERT INTO idm."users" VALUES (9, 'test1@example.com', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
+INSERT INTO idm."users" VALUES (10, 'test2@example.com', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
 COMMIT;
