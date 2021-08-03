@@ -32,7 +32,7 @@ CACHE 1;
 -- ----------------------------
 -- Table structure for users
 -- ----------------------------
-CREATE TABLE if not exists "users" (
+CREATE TABLE if not exists idm."users" (
   "user_id" int4 NOT NULL DEFAULT nextval('idm.users_user_id_seq'::regclass),
   "user_name" varchar COLLATE "pg_catalog"."default" NOT NULL,
   "password" varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -45,8 +45,8 @@ CREATE TABLE if not exists "users" (
 )
 ;
 
-ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
-ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+ALTER TABLE idm."users" drop CONSTRAINT if exists "users_pkey";
+ALTER TABLE idm."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 
 
 
@@ -59,8 +59,8 @@ SELECT setval('"users_user_id_seq"', 5, false);
 -- ----------------------------
 -- Primary Key structure for table users
 -- ----------------------------
-ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
-ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+ALTER TABLE idm."users" drop CONSTRAINT if exists "users_pkey";
+ALTER TABLE idm."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 
 -- ----------------------------
 -- Records of users
