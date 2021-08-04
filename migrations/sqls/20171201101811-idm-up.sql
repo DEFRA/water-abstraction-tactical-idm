@@ -20,7 +20,7 @@ set schema 'idm';
 -- ----------------------------
 -- Sequence structure for users_user_id_seq
 -- ----------------------------
-CREATE SEQUENCE if not exists "users_user_id_seq"
+CREATE SEQUENCE if not exists idm."users_user_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -32,7 +32,7 @@ CACHE 1;
 -- ----------------------------
 -- Table structure for users
 -- ----------------------------
-CREATE TABLE if not exists "users" (
+CREATE TABLE if not exists idm."users" (
   "user_id" int4 NOT NULL DEFAULT nextval('idm.users_user_id_seq'::regclass),
   "user_name" varchar COLLATE "pg_catalog"."default" NOT NULL,
   "password" varchar COLLATE "pg_catalog"."default" NOT NULL,
@@ -45,8 +45,8 @@ CREATE TABLE if not exists "users" (
 )
 ;
 
-ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
-ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+ALTER TABLE idm."users" drop CONSTRAINT if exists "users_pkey";
+ALTER TABLE idm."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 
 
 
@@ -59,13 +59,13 @@ SELECT setval('"users_user_id_seq"', 5, false);
 -- ----------------------------
 -- Primary Key structure for table users
 -- ----------------------------
-ALTER TABLE "users" drop CONSTRAINT if exists "users_pkey";
-ALTER TABLE "users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+ALTER TABLE idm."users" drop CONSTRAINT if exists "users_pkey";
+ALTER TABLE idm."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
 BEGIN;
-INSERT INTO "users" VALUES (9, 'test1@example.com', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
-INSERT INTO "users" VALUES (10, 'test2@example.com', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
+INSERT INTO idm."users" VALUES (9, 'test1@example.com', '$2a$10$dh/WkFg7f0EBnaP8723xXeU1mX2nUtx9fmi1few3VJwkNOjvuwD6K', 1, '{"firstname":"Dave"}', '8ddf47e2-333a-89dc-aa5a-802d2172fbe5', NULL, NULL, 0)  on conflict (user_id) do nothing;;
+INSERT INTO idm."users" VALUES (10, 'test2@example.com', '$2a$10$cfknMPueleTEnSGX6wqhB.y6TinFjlFqrKUFqRhpjFXH9ZypdBHRe', 0, '{"firstname":"Dave"}', NULL, NULL, NULL, 0) on conflict (user_id) do nothing;;
 COMMIT;
