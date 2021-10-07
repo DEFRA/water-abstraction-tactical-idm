@@ -31,14 +31,14 @@ module.exports = [
     handler: resetController.resetPassword,
     options: {
       validate: {
-        params: {
+        params: Joi.object().keys({
           email: Joi.string().email().required(),
           application: Joi.string().required()
-        },
-        query: {
+        }),
+        query: Joi.object().keys({
           mode: Joi.string().valid('reset', 'new', 'existing', 'sharing'),
           sender: Joi.string().email()
-        }
+        })
       },
       description: 'Reset user password and send one of a selection of reset emails'
     }
