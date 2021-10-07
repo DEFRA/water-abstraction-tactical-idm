@@ -15,12 +15,12 @@ module.exports = [{
   options: {
     description: 'Starts the process of changing user email address',
     validate: {
-      params: {
+      params: Joi.object().keys({
         userId: VALID_USER_ID
-      },
-      payload: {
+      }),
+      payload: Joi.object().keys({
         email: VALID_EMAIL
-      }
+      })
     }
   }
 },
@@ -31,12 +31,12 @@ module.exports = [{
   options: {
     description: 'Completes the process of changing user email address',
     validate: {
-      params: {
+      params: Joi.object().keys({
         userId: VALID_USER_ID
-      },
-      payload: {
+      }),
+      payload: Joi.object().keys({
         securityCode: VALID_SECURITY_CODE
-      }
+      })
     }
   }
 },
@@ -47,9 +47,9 @@ module.exports = [{
   options: {
     description: 'Gets status of the email address process',
     validate: {
-      params: {
+      params: Joi.object().keys({
         userId: VALID_USER_ID
-      }
+      })
     }
   }
 }
