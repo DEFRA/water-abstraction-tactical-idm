@@ -10,11 +10,11 @@ module.exports = [
     options: {
       description: 'Login users, responds with user details',
       validate: {
-        payload: {
+        payload: Joi.object().keys({
           user_name: Joi.string().required(),
           password: Joi.string().required(),
           application: Joi.string().required()
-        }
+        })
       }
     }
   }

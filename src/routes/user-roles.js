@@ -9,14 +9,14 @@ module.exports = [
     handler: controller.putUserRoles,
     options: {
       validate: {
-        params: {
+        params: Joi.object().keys({
           userId: Joi.number().integer().required()
-        },
-        payload: {
+        }),
+        payload: Joi.object().keys({
           application: Joi.string().required(),
           roles: Joi.array().items(Joi.string()),
           groups: Joi.array().items(Joi.string())
-        }
+        })
       }
     }
   }
