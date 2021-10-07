@@ -13,12 +13,12 @@ module.exports = [
     options: {
       description: 'User reauthenticating with their password',
       validate: {
-        params: {
+        params: Joi.object().keys({
           userId: VALID_USER_ID
-        },
-        payload: {
+        }),
+        payload: Joi.object().keys({
           password: VALID_PASSWORD
-        }
+        })
       }
     }
   }
