@@ -1,5 +1,5 @@
 const HAPIRestAPI = require('@envage/hapi-pg-rest-api');
-const Joi = require('@hapi/joi');
+const Joi = require('Joi');
 const { omit } = require('lodash');
 
 const { createHash } = require('../lib/helpers');
@@ -35,7 +35,7 @@ const restApi = new HAPIRestAPI({
     user_id: [Joi.number().required(), Joi.string().email().required().lowercase()],
     user_name: Joi.string().email().trim().lowercase(),
     password: Joi.string(),
-    user_data: Joi.object(),
+    user_data: Joi.string(),
     reset_guid: Joi.string().guid().allow(null),
     reset_guid_date_created: Joi.string().allow(null),
     reset_required: Joi.number(),
@@ -44,7 +44,7 @@ const restApi = new HAPIRestAPI({
     date_created: Joi.string().allow(null),
     date_updated: Joi.string().allow(null),
     application: Joi.string(),
-    role: Joi.object().allow(null),
+    role: Joi.string().allow(null),
     external_id: Joi.string().allow(null),
     enabled: Joi.boolean()
   }

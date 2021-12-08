@@ -1,15 +1,19 @@
-var bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const util = require('util');
 
 function createHash (string) {
   return new Promise((resolve, reject) => {
-    const saltRounds = 10;
-    bcrypt.hash(string, saltRounds, function (err, hash) {
+    bcrypt.genSalt(10, function (err, salt) {
       if (err) {
         reject(err);
       }
-      resolve(hash);
+      bcrypt.hash(string, salt, function (err, hash) {
+        if (err) {
+          reject(err);
+        }
+        resolve(hash);
+      });
     });
   });
 }
