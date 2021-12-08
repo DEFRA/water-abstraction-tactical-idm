@@ -1,5 +1,5 @@
 const HAPIRestAPI = require('@envage/hapi-pg-rest-api');
-const Joi = require('Joi');
+const Joi = require('joi');
 const { omit } = require('lodash');
 
 const { createHash } = require('../lib/helpers');
