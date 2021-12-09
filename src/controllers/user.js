@@ -27,6 +27,12 @@ const restApi = new HAPIRestAPI({
     if ('password' in request.data) {
       request.data.password = await createHash(request.data.password);
     }
+    if ('user_data' in request.data && typeof request.data.user_data !== 'string') {
+      request.data.user_data = JSON.stringify(request.data.user_data);
+    }
+    if ('role' in request.data && typeof request.data.role !== 'string') {
+      request.data.role = JSON.stringify(request.data.role);
+    }
     return request;
   },
   onCreateTimestamp: 'date_created',
