@@ -28,9 +28,9 @@ async function createUser (email, password, application = 'water_vml') {
       user_name: email,
       password,
       application,
-      user_data: {
+      user_data: JSON.stringify({
         unitTest: true
-      }
+      })
     }
   };
 

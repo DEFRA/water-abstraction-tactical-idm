@@ -38,9 +38,9 @@ const createTestUser = async (userName = testEmailOne, application = 'water_vml'
     user_name: userName,
     application,
     password: uuidv4(),
-    user_data: {
+    user_data: JSON.stringify({
       unitTest: true
-    }
+    })
   };
 
   const response = await server.inject(request);
