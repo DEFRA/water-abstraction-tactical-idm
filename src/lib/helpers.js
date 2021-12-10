@@ -4,13 +4,13 @@ const util = require('util');
 
 function createHash (string) {
   return new Promise((resolve, reject) => {
-    bcrypt.genSalt(10, function (err, salt) {
-      if (err) {
-        reject(err);
+    bcrypt.genSalt(10, function (saltErr, salt) {
+      if (saltErr) {
+        reject(saltErr);
       }
-      bcrypt.hash(string, salt, function (err, hash) {
-        if (err) {
-          reject(err);
+      bcrypt.hash(string, salt, function (hashErr, hash) {
+        if (hashErr) {
+          reject(hashErr);
         }
         resolve(hash);
       });
