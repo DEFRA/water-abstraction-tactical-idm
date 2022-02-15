@@ -15,7 +15,7 @@ const usersRepo = new UsersRepository({
   primaryKey: 'user_id'
 });
 
-experiment('UsersRepository', async () => {
+experiment('UsersRepository', () => {
   afterEach(async () => {
     sandbox.restore();
   });
@@ -39,7 +39,7 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('findGroups', async () => {
+  experiment('findGroups', () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{ group: 'group_1' }] });
     });
@@ -57,7 +57,7 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('findRoles', async () => {
+  experiment('findRoles', () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'dbQuery').resolves({ rows: [{ role: 'role_1' }] });
     });
@@ -75,7 +75,7 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('findInSameApplication', async () => {
+  experiment('findInSameApplication', () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'dbQuery').resolves({
         rows: [{
@@ -99,7 +99,7 @@ experiment('UsersRepository', async () => {
     });
   });
 
-  experiment('updateEmailAddress', async () => {
+  experiment('updateEmailAddress', () => {
     beforeEach(async () => {
       sandbox.stub(Repository.prototype, 'update').resolves({
         rows: [{
