@@ -1,7 +1,7 @@
 const repos = require('../lib/repos');
 const moment = require('moment');
 const { get, pick } = require('lodash');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const notify = require('../lib/connectors/notify');
 const { logger } = require('../logger');
 

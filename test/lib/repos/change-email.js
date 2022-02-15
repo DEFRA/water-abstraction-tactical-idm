@@ -16,7 +16,7 @@ const response = {
   }]
 };
 
-experiment('ChangeEmailRepository', async () => {
+experiment('ChangeEmailRepository', () => {
   beforeEach(async () => {
     sandbox.stub(Repository.prototype, 'find');
     sandbox.stub(Repository.prototype, 'dbQuery').resolves(response);

@@ -8,7 +8,7 @@
  * - Update documents with verification ID to verified status
  */
 'use strict';
-const uuidv4 = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const { experiment, test, beforeEach, after } = exports.lab = require('@hapi/lab').script();
 const { get } = require('lodash');
 const { expect } = require('@hapi/code');
@@ -37,7 +37,7 @@ const createTestUser = async (userName = testEmailOne, application = 'water_vml'
   request.payload = {
     user_name: userName,
     application,
-    password: uuidv4(),
+    password: uuid(),
     user_data: JSON.stringify({
       unitTest: true
     })
