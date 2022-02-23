@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const sandbox = sinon.createSandbox();
 const repos = require('../../src/lib/repos');
 const notify = require('../../src/lib/connectors/notify');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const moment = require('moment');
 
 const getResponseToolkitStub = () => {
@@ -28,7 +28,7 @@ const getRequest = email => {
 
 const guidRegex = /[\d|\w]{8}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{4}-[\d|\w]{12}/;
 
-experiment('resetPassword', async () => {
+experiment('resetPassword', () => {
   beforeEach(async () => {
     sandbox.stub(repos.usersRepo, 'findByUsername');
     sandbox.stub(repos.usersRepo, 'updateResetGuid').resolves({});
@@ -68,7 +68,7 @@ experiment('resetPassword', async () => {
   });
 });
 
-experiment('resetPassword - when reset guid has not been set before', async () => {
+experiment('resetPassword - when reset guid has not been set before', () => {
   let request;
   let response;
   let h;
@@ -116,7 +116,7 @@ experiment('resetPassword - when reset guid has not been set before', async () =
   });
 });
 
-experiment('resetPassword - when reset guid has been updated in the last 24 hours', async () => {
+experiment('resetPassword - when reset guid has been updated in the last 24 hours', () => {
   let request;
   let response;
   let resetGuid;
@@ -165,7 +165,7 @@ experiment('resetPassword - when reset guid has been updated in the last 24 hour
   });
 });
 
-experiment('resetPassword - when reset guid was last set over 1 day ago', async () => {
+experiment('resetPassword - when reset guid was last set over 1 day ago', () => {
   let request;
   let response;
 

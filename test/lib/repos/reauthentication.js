@@ -12,7 +12,7 @@ const response = {
   }]
 };
 
-experiment('ReauthenticationRepository', async () => {
+experiment('ReauthenticationRepository', () => {
   let connection, repo;
 
   beforeEach(async () => {

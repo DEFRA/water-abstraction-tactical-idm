@@ -8,7 +8,7 @@
  * - Update documents with verification ID to verified status
  */
 'use strict';
-const uuidv4 = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const { experiment, test, before, beforeEach, afterEach } = exports.lab = require('@hapi/lab').script();
 const { deleteTestUsers } = require('./test-helpers');
 
@@ -79,7 +79,7 @@ experiment('Test authentication API', () => {
   beforeEach(async ({ context }) => {
     createdEmails = [];
     context.email = 'unit-test-user@example.com';
-    context.password = uuidv4();
+    context.password = uuid();
     context.application = 'water_vml';
     context.userId = await createUser(context.email, context.password, context.application);
   });
@@ -117,7 +117,7 @@ experiment('Test authentication API', () => {
   test('The API should allow authentication for admin user with admin account', async () => {
     // create a water_admin user
     const email = 'unit-test-admin@example.com';
-    const password = uuidv4();
+    const password = uuid();
     const application = 'water_admin';
 
     const userId = await createUser(email, password, application);

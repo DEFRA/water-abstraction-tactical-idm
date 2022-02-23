@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const uuidv4 = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const { get, omit } = require('lodash');
 
 const repos = require('../../lib/repos');
@@ -66,7 +66,7 @@ const handleBadLogin = async user => {
   const { bad_logins: lockCount } = await repos.usersRepo.incrementLockCount(user.user_id);
   if (parseInt(lockCount) === 10) {
     // When 10 bad logins reached, reset password and send email
-    const resetGuid = uuidv4();
+    const resetGuid = uuid();
     return Promise.all([
       repos.usersRepo.voidCurrentPassword(user.user_id, resetGuid),
       sendPasswordLockEmail(user, resetGuid)
