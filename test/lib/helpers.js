@@ -8,7 +8,7 @@ const plainText = 'Test1234';
 const hash = '$2b$10$H8Vd7SlmsEZ..N/.wDIlXOUeMD0oAjnJi8zmKL6Rt3H69ITpMUhOK';
 
 experiment('helpers', () => {
-  experiment('createDigitCode', async () => {
+  experiment('createDigitCode', () => {
     test('creates a random 6 digit code by default', async () => {
       const result = helpers.createDigitCode();
       expect(result).to.match(allNumberCodeRegex);
