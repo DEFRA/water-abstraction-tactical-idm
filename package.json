@@ -14,28 +14,13 @@
     "migrate": "node scripts/create-schema && db-migrate up --verbose",
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
-    "lint": "eslint .",
+    "lint": "standard",
+    "lint:fix": "standard --fix",
     "codecov": "codecov",
     "version": "auto-changelog -p --commit-limit false && git add CHANGELOG.md"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@hapi/code": "^8.0.7",
-    "@hapi/lab": "^24.5.1",
-    "auto-changelog": "^1.16.4",
-    "codecov": "^3.8.3",
-    "db-migrate": "^0.11.13",
-    "db-migrate-pg": "^1.2.2",
-    "eslint": "^8.13.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-standard": "^5.0.0",
-    "sinon": "^12.0.1",
-    "snyk": "^1.852.0"
-  },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^7.0.0",
     "@envage/water-abstraction-helpers": "4.8.0",
@@ -54,5 +39,16 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@hapi/code": "^8.0.7",
+    "@hapi/lab": "^24.5.1",
+    "auto-changelog": "^1.16.4",
+    "codecov": "^3.8.3",
+    "db-migrate": "^0.11.13",
+    "db-migrate-pg": "^1.2.2",
+    "sinon": "^12.0.1",
+    "snyk": "^1.852.0",
+    "standard": "^17.0.0"
   }
 }
