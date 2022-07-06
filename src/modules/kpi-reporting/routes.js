@@ -1,5 +1,5 @@
-const { version } = require('../../../config');
-const controller = require('./controller');
+const { version } = require('../../../config')
+const controller = require('./controller')
 
 module.exports = [{
   method: 'GET',
@@ -8,4 +8,4 @@ module.exports = [{
   options: {
     description: 'Gets KPI data for user registrations by month'
   }
-}];
+}]
