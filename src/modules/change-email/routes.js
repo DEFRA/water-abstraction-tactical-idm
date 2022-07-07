@@ -1,12 +1,12 @@
-const Joi = require('joi');
-const { version } = require('../../../config');
-const controller = require('./controller');
+const Joi = require('joi')
+const { version } = require('../../../config')
+const controller = require('./controller')
 
-const SECURITY_CODE_REGEX = /^[0-9]{6}$/;
+const SECURITY_CODE_REGEX = /^[0-9]{6}$/
 
-const VALID_USER_ID = Joi.number().positive().required();
-const VALID_SECURITY_CODE = Joi.string().regex(SECURITY_CODE_REGEX).required();
-const VALID_EMAIL = Joi.string().email().required();
+const VALID_USER_ID = Joi.number().positive().required()
+const VALID_SECURITY_CODE = Joi.string().regex(SECURITY_CODE_REGEX).required()
+const VALID_EMAIL = Joi.string().email().required()
 
 module.exports = [{
   method: 'POST',
@@ -54,4 +54,4 @@ module.exports = [{
   }
 }
 
-];
+]

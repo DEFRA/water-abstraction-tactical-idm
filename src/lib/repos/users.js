@@ -1,9 +1,9 @@
-const Repository = require('@envage/hapi-pg-rest-api/src/repository');
+const Repository = require('@envage/hapi-pg-rest-api/src/repository')
 
-const { getNow } = require('./date-helpers');
+const { getNow } = require('./date-helpers')
 
-const mapRole = row => row.role;
-const mapGroup = row => row.group;
+const mapRole = row => row.role
+const mapGroup = row => row.group
 
 /**
  * Repository for idm.users table
@@ -16,8 +16,8 @@ class UsersRepository extends Repository {
    * @return {Promise<Object>}
    */
   async findById (userId) {
-    const { rows: [user] } = await this.find({ user_id: userId });
-    return user;
+    const { rows: [user] } = await this.find({ user_id: userId })
+    return user
   }
 
   async findGroups (userId) {
@@ -26,10 +26,10 @@ class UsersRepository extends Repository {
       from idm.groups g
         join idm.user_groups ug on ug.group_id = g.group_id
       where ug.user_id = $1;
-    `;
+    `
 
-    const { rows } = await this.dbQuery(query, [userId]);
-    return rows.map(mapGroup);
+    const { rows } = await this.dbQuery(query, [userId])
+    return rows.map(mapGroup)
   }
 
   /**
@@ -53,9 +53,9 @@ class UsersRepository extends Repository {
       from idm.user_roles ur
         join idm.roles r on ur.role_id = r.role_id
       where ur.user_id = $1;
-    `;
-    const { rows } = await this.dbQuery(query, [userId]);
-    return rows.map(mapRole);
+    `
+    const { rows } = await this.dbQuery(query, [userId])
+    return rows.map(mapRole)
   }
 
   /**
@@ -66,7 +66,7 @@ class UsersRepository extends Repository {
    * @return {Promise<Object>}       - returns user if found
    */
   async findInSameApplication (userId, newEmail) {
-    const email = newEmail.trim().toLowerCase();
+    const email = newEmail.trim().toLowerCase()
 
     const query = `SELECT * FROM idm.users u
       JOIN (
@@ -74,12 +74,12 @@ class UsersRepository extends Repository {
           FROM idm.users u
           WHERE u.user_id=$1
       ) u2 ON u.application=u2.application
-      WHERE u.user_name=$2`;
+      WHERE u.user_name=$2`
 
-    const params = [userId, email];
+    const params = [userId, email]
 
-    const { rows: [user] } = await this.dbQuery(query, params);
-    return user;
+    const { rows: [user] } = await this.dbQuery(query, params)
+    return user
   }
 
   /**
@@ -89,13 +89,13 @@ class UsersRepository extends Repository {
    * @return {Promise<Object>} - user record
    */
   async updateEmailAddress (userId, newEmail, refDate) {
-    const filter = { user_id: userId };
+    const filter = { user_id: userId }
     const data = {
       user_name: newEmail.toLowerCase().trim(),
       date_updated: getNow(refDate)
-    };
-    const { rows: [user] } = await this.update(filter, data);
-    return user;
+    }
+    const { rows: [user] } = await this.update(filter, data)
+    return user
   }
 
   /** Deletes all role and groups associations for the given user id
@@ -103,13 +103,13 @@ class UsersRepository extends Repository {
    * @param {Number} userId The id of the user whose roles and groups are to be deleted
    */
   deleteRoles (userId) {
-    const rolesQuery = 'delete from idm.user_roles where user_id = $1';
-    const groupsQuery = 'delete from idm.user_groups where user_id = $1';
+    const rolesQuery = 'delete from idm.user_roles where user_id = $1'
+    const groupsQuery = 'delete from idm.user_groups where user_id = $1'
 
     return Promise.all([
       this.dbQuery(rolesQuery, [userId]),
       this.dbQuery(groupsQuery, [userId])
-    ]);
+    ])
   }
 
   /**
@@ -127,9 +127,9 @@ class UsersRepository extends Repository {
       select gen_random_uuid(), $1, r.role_id
       from idm.roles r
       where r.application = $2
-      and r.role = any ($3);`;
+      and r.role = any ($3);`
 
-    return this.dbQuery(query, [userId, application, roles]);
+    return this.dbQuery(query, [userId, application, roles])
   }
 
   /**
@@ -147,9 +147,9 @@ class UsersRepository extends Repository {
       select gen_random_uuid(), $1, g.group_id
       from idm.groups g
       where g.application = $2
-      and g.group = any ($3);`;
+      and g.group = any ($3);`
 
-    return this.dbQuery(query, [userId, application, groups]);
+    return this.dbQuery(query, [userId, application, groups])
   }
 
   async findUserWithRoles (userId) {
@@ -157,14 +157,14 @@ class UsersRepository extends Repository {
       this.findById(userId),
       this.findRoles(userId),
       this.findGroups(userId)
-    ]);
+    ])
 
     if (user) {
-      user.roles = roles;
-      user.groups = groups;
+      user.roles = roles
+      user.groups = groups
     }
 
-    return user;
+    return user
   }
 
   /**
@@ -178,10 +178,10 @@ class UsersRepository extends Repository {
       select *
       from idm.users
       where lower(user_name) = lower($1)
-      and application = $2;`;
-    const params = [userName, application];
-    const { rows: [user] } = await this.dbQuery(query, params);
-    return user;
+      and application = $2;`
+    const params = [userName, application]
+    const { rows: [user] } = await this.dbQuery(query, params)
+    return user
   }
 
   /**
@@ -195,10 +195,10 @@ class UsersRepository extends Repository {
         SET bad_logins = COALESCE(bad_logins, 0) + 1, date_updated = NOW()
         WHERE user_id=$1
         RETURNING *
-    `;
-    const params = [userId];
-    const { rows: [user] } = await this.dbQuery(query, params);
-    return user;
+    `
+    const params = [userId]
+    const { rows: [user] } = await this.dbQuery(query, params)
+    return user
   }
 
   /**
@@ -213,9 +213,9 @@ class UsersRepository extends Repository {
       UPDATE idm.users
         SET password = 'VOID', reset_guid = $2, date_updated = NOW()
         WHERE user_id = $1
-    `;
-    const params = [userId, resetGuid];
-    return this.dbQuery(query, params);
+    `
+    const params = [userId, resetGuid]
+    return this.dbQuery(query, params)
   }
 
   /**
@@ -225,7 +225,7 @@ class UsersRepository extends Repository {
    * @return {Promise}            resolves when reset GUID is updated
    */
   updateResetGuid (userId, resetGuid) {
-    return this.update({ user_id: userId }, { reset_guid: resetGuid });
+    return this.update({ user_id: userId }, { reset_guid: resetGuid })
   }
 
   /**
@@ -241,10 +241,10 @@ class UsersRepository extends Repository {
       last_login = now(),
       date_updated = now()
       where user_id = $1
-      returning *;`;
-    const params = [userId];
-    const { rows: [user] } = await this.dbQuery(query, params);
-    return user;
+      returning *;`
+    const params = [userId]
+    const { rows: [user] } = await this.dbQuery(query, params)
+    return user
   };
 
   /**
@@ -265,10 +265,10 @@ class UsersRepository extends Repository {
     last_login IS NOT NULL 
     AND date_created IS NOT NULL 
     GROUP BY month, current_year
-    ORDER BY current_year asc, month desc;`;
-    const { rows } = await this.dbQuery(query);
-    return rows;
+    ORDER BY current_year asc, month desc;`
+    const { rows } = await this.dbQuery(query)
+    return rows
   };
 };
 
-module.exports = UsersRepository;
+module.exports = UsersRepository

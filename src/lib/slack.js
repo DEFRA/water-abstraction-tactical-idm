@@ -1,14 +1,14 @@
 // contains generic functions unrelated to a specific component
 const rp = require('request-promise-native').defaults({
   strictSSL: false
-});
+})
 
-const { logger } = require('../logger');
+const { logger } = require('../logger')
 
 function post (message) {
   return new Promise((resolve, reject) => {
-    const uri = 'https://hooks.slack.com/services/' + process.env.SLACK_HOOK;
-    logger.info(uri);
+    const uri = 'https://hooks.slack.com/services/' + process.env.SLACK_HOOK
+    logger.info(uri)
     const options = {
       method: 'POST',
       url: uri,
@@ -18,14 +18,14 @@ function post (message) {
       form: {
         payload: '{"channel": "#beta-activity", "username": "Gerald The Water Buffalo", "text": "' + message + '", "icon_emoji": ":water_buffalo:"}'
       }
-    };
+    }
 
     rp(options)
       .then(() => resolve('yay'))
-      .catch(err => reject(err));
-  });
+      .catch(err => reject(err))
+  })
 }
 
 module.exports = {
   post
-};
+}
