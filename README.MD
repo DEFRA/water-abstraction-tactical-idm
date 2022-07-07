@@ -1,12 +1,11 @@
+# Water Abstraction Tactical IDM
 
-|               |              |  
-|---------------|--------------|
-| Build         |  ![CI](https://github.com/DEFRA/water-abstraction-tactical-idm/workflows/CI/badge.svg) |
-| Test coverage |[![Test Coverage](https://api.codeclimate.com/v1/badges/40d67aaf281ad5123107/test_coverage)](https://codeclimate.com/github/DEFRA/water-abstraction-tactical-idm/test_coverage)  |
-| Quality check |  [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_water-abstraction-tactical-idm&metric=alert_status)](https://sonarcloud.io/dashboard?id=DEFRA_water-abstraction-tactical-idm) |
+![Build Status](https://github.com/DEFRA/water-abstraction-tactical-idm/workflows/CI/badge.svg?branch=develop)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_water-abstraction-tactical-idm&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=DEFRA_water-abstraction-tactical-idm)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_water-abstraction-tactical-idm&metric=coverage)](https://sonarcloud.io/dashboard?id=DEFRA_water-abstraction-tactical-idm)
+[![Known Vulnerabilities](https://snyk.io/test/github/DEFRA/water-abstraction-tactical-idm/badge.svg)](https://snyk.io/test/github/DEFRA/water-abstraction-tactical-idm)
+[![Licence](https://img.shields.io/badge/Licence-OGLv3-blue.svg)](http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3)
 
-
-# Introduction
 This component is one of 3 that combine to give you the ability to store a document or details of a permit or pass, to link those documents to users that can view and be able to have different access for internal and external users. With a front end it will enable most processes to capture, share and view details of permits and or licence style information
 
 __Permit Repository:__ https://github.com/DEFRA/water-abstraction-permit-repository
@@ -14,8 +13,6 @@ __Permit Repository:__ https://github.com/DEFRA/water-abstraction-permit-reposit
 __IDM:__ https://github.com/DEFRA/water-abstraction-tactical-idm
 
 __CRM:__ https://github.com/DEFRA/water-abstraction-tactical-crm
-
-# water-abstraction-tactical-idm
 
 The water-abstraction-tactical-idm is a lightweight identity management solution providing simple user account creation and authentication features.
 
@@ -72,4 +69,3 @@ It is designed to encourage use and re-use of information freely and flexibly, w
 ## Environment Variables
 
 The required environment variables for local development can be found in the [.env.example file](./.env.example).
-
