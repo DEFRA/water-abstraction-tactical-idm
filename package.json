@@ -2,23 +2,21 @@
   "name": "water-abstraction-tactical-idm",
   "version": "2.23.0",
   "description": "Tactical identity management for the water service",
+  "homepage": "https://github.com/DEFRA/water-abstraction-team",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DEFRA/water-abstraction-tactical-idm"
   },
+  "author": "WRLS service team",
+  "license": "OGL-UK-3.0",
   "scripts": {
     "test": "lab",
     "migrate": "node scripts/create-schema && db-migrate up --verbose",
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
-    "lint": "standard",
-    "lint:fix": "standard --fix",
-    "codecov": "codecov",
-    "version": "auto-changelog -p --commit-limit false && git add CHANGELOG.md"
+    "lint": "standard"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^7.0.0",
     "@envage/water-abstraction-helpers": "4.8.0",
