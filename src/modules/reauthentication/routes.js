@@ -1,9 +1,9 @@
 
-const Joi = require('joi');
-const controller = require('./controller');
+const Joi = require('joi')
+const controller = require('./controller')
 
-const VALID_USER_ID = Joi.number().positive().required();
-const VALID_PASSWORD = Joi.string().required();
+const VALID_USER_ID = Joi.number().positive().required()
+const VALID_PASSWORD = Joi.string().required()
 
 module.exports = [
   {
@@ -22,4 +22,4 @@ module.exports = [
       }
     }
   }
-];
+]

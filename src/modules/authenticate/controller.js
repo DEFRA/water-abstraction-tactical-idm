@@ -1,11 +1,11 @@
-const Boom = require('@hapi/boom');
-const { v4: uuid } = require('uuid');
-const { get, omit } = require('lodash');
+const Boom = require('@hapi/boom')
+const { v4: uuid } = require('uuid')
+const { get, omit } = require('lodash')
 
-const repos = require('../../lib/repos');
-const helpers = require('../../lib/helpers');
-const { logger } = require('../../logger');
-const Notify = require('../../lib/connectors/notify');
+const repos = require('../../lib/repos')
+const helpers = require('../../lib/helpers')
+const { logger } = require('../../logger')
+const Notify = require('../../lib/connectors/notify')
 
 /**
  * Error handler for requests.
@@ -15,17 +15,17 @@ const Notify = require('../../lib/connectors/notify');
  * @return {[type]}     [description]
  */
 const errorHandler = (err, h) => {
-  const statusCode = get(err, 'output.statusCode', 500);
+  const statusCode = get(err, 'output.statusCode', 500)
   if (statusCode < 500) {
-    logger.info(err.message);
+    logger.info(err.message)
     return h.response({
       user_id: null,
       err: 'Unknown user name or password'
-    }).code(401);
+    }).code(401)
   }
-  logger.error('IDM login error', err);
-  throw err;
-};
+  logger.error('IDM login error', err)
+  throw err
+}
 
 /**
  * Sends a password lock email to the user specified with their new reset GUID
@@ -40,8 +40,8 @@ const sendPasswordLockEmail = (user, resetGuid) => {
     firstname: get(user, 'user_data.firstname', 'User'),
     resetGuid,
     userApplication: user.application
-  });
-};
+  })
+}
 
 /**
  * Maps the user record to the HTTP response
@@ -52,8 +52,8 @@ const mapUserResponse = user => {
   return {
     ...omit(user, 'password'),
     err: null
-  };
-};
+  }
+}
 
 /**
  * Handles a bad login attempt.
@@ -63,16 +63,16 @@ const mapUserResponse = user => {
  * @return {Promise} resolves when bad login attempt has been handled
  */
 const handleBadLogin = async user => {
-  const { bad_logins: lockCount } = await repos.usersRepo.incrementLockCount(user.user_id);
+  const { bad_logins: lockCount } = await repos.usersRepo.incrementLockCount(user.user_id)
   if (parseInt(lockCount) === 10) {
     // When 10 bad logins reached, reset password and send email
-    const resetGuid = uuid();
+    const resetGuid = uuid()
     return Promise.all([
       repos.usersRepo.voidCurrentPassword(user.user_id, resetGuid),
       sendPasswordLockEmail(user, resetGuid)
-    ]);
+    ])
   }
-};
+}
 
 /**
  * POST - authenticate
@@ -81,34 +81,34 @@ const handleBadLogin = async user => {
  * @param {String} request.payload.password
  */
 const postAuthenticate = async (request, h) => {
-  const { user_name: userName, password, application } = request.payload;
+  const { user_name: userName, password, application } = request.payload
 
   try {
     // Find user
-    const user = await repos.usersRepo.findByUsername(userName, application);
+    const user = await repos.usersRepo.findByUsername(userName, application)
     if (!user) {
-      throw Boom.notFound(`User ${userName} not found`);
+      throw Boom.notFound(`User ${userName} not found`)
     }
 
     // Is user enabled?
     if (!user.enabled) {
-      throw Boom.locked(`User account ${userName} is disabled`);
+      throw Boom.locked(`User account ${userName} is disabled`)
     }
 
     // Check submitted password
-    const isAuthenticated = await helpers.testPassword(password, user.password);
+    const isAuthenticated = await helpers.testPassword(password, user.password)
 
     if (!isAuthenticated) {
-      await handleBadLogin(user);
-      throw Boom.unauthorized(`User ${userName} unauthorized`);
+      await handleBadLogin(user)
+      throw Boom.unauthorized(`User ${userName} unauthorized`)
     }
 
     // Update user last login time / reset login count
-    const updatedUser = await repos.usersRepo.updateAuthenticatedUser(user.user_id);
-    return mapUserResponse(updatedUser);
+    const updatedUser = await repos.usersRepo.updateAuthenticatedUser(user.user_id)
+    return mapUserResponse(updatedUser)
   } catch (err) {
-    return errorHandler(err, h);
+    return errorHandler(err, h)
   }
-};
+}
 
-exports.postAuthenticate = postAuthenticate;
+exports.postAuthenticate = postAuthenticate
