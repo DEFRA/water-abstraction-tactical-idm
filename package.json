@@ -2,39 +2,20 @@
   "name": "water-abstraction-tactical-idm",
   "version": "2.24.0",
   "description": "Tactical identity management for the water service",
+  "homepage": "https://github.com/DEFRA/water-abstraction-team",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DEFRA/water-abstraction-tactical-idm"
   },
+  "author": "WRLS service team",
+  "license": "OGL-UK-3.0",
   "scripts": {
     "test": "lab",
-    "test:ci": "lab -t 55 -m 0 -r lcov -o coverage/lcov.info -r console -o stdout",
-    "test-cov-html": "lab -r html -o coverage.html",
     "migrate": "node scripts/create-schema && db-migrate up --verbose",
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
-    "lint": "eslint .",
-    "codecov": "codecov",
-    "version": "auto-changelog -p --commit-limit false && git add CHANGELOG.md"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@hapi/code": "^8.0.7",
-    "@hapi/lab": "^24.5.1",
-    "auto-changelog": "^1.16.4",
-    "codecov": "^3.8.3",
-    "db-migrate": "^0.11.13",
-    "db-migrate-pg": "^1.2.2",
-    "eslint": "^8.13.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-standard": "^5.0.0",
-    "sinon": "^12.0.1",
-    "snyk": "^1.852.0"
+    "lint": "standard"
   },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^7.0.0",
@@ -44,6 +25,8 @@
     "@hapi/hapi": "^20.2.1",
     "bcryptjs": "^2.4.3",
     "blipp": "^4.0.2",
+    "db-migrate": "^0.11.13",
+    "db-migrate-pg": "^1.2.2",
     "dotenv": "^8.6.0",
     "good-winston": "^4.0.0",
     "hapi-auth-jwt2": "^8.8.1",
@@ -54,5 +37,13 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@hapi/code": "^8.0.7",
+    "@hapi/lab": "^24.5.1",
+    "auto-changelog": "^1.16.4",
+    "codecov": "^3.8.3",
+    "sinon": "^12.0.1",
+    "standard": "^17.0.0"
   }
 }

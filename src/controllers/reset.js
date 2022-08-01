@@ -1,32 +1,32 @@
-const repos = require('../lib/repos');
-const moment = require('moment');
-const { get, pick } = require('lodash');
-const { v4: uuid } = require('uuid');
-const notify = require('../lib/connectors/notify');
-const { logger } = require('../logger');
+const repos = require('../lib/repos')
+const moment = require('moment')
+const { get, pick } = require('lodash')
+const { v4: uuid } = require('uuid')
+const notify = require('../lib/connectors/notify')
+const { logger } = require('../logger')
 
 class UserNotFoundError extends Error {
   constructor (message) {
-    super(message);
-    this.name = 'UserNotFoundError';
+    super(message)
+    this.name = 'UserNotFoundError'
   }
 }
 
 class NotifyError extends Error {
   constructor (message) {
-    super(message);
-    this.name = 'NotifyError';
+    super(message)
+    this.name = 'NotifyError'
   }
 }
 
 const shouldUpdateUserResetGuid = user => {
-  const { reset_guid: guid, reset_guid_date_created: created } = user;
+  const { reset_guid: guid, reset_guid_date_created: created } = user
 
   if (guid && moment(created).isAfter(moment().subtract(1, 'day'))) {
-    return false;
+    return false
   }
-  return true;
-};
+  return true
+}
 
 const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
   const { err } = await notify.sendPasswordResetEmail({
@@ -35,34 +35,34 @@ const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
     resetGuid,
     sender,
     userApplication: user.application
-  }, mode);
+  }, mode)
 
   if (err) {
-    throw new NotifyError(err);
+    throw new NotifyError(err)
   }
-};
+}
 
 const createResetPasswordResponse = (user, resetGuid) => ({
   error: null,
   data: Object.assign({ reset_guid: resetGuid }, pick(user, 'user_name', 'user_id'))
-});
+})
 
 const errorHandler = (request, h, error) => {
   if (error.name === 'UserNotFoundError') {
-    request.log('info', error);
-    return h.response({ data: null, error }).code(404);
+    request.log('info', error)
+    return h.response({ data: null, error }).code(404)
   }
 
-  logger.error('resetPassword error', error);
-  return h.response({ data: null, error }).code(500);
-};
+  logger.error('resetPassword error', error)
+  return h.response({ data: null, error }).code(500)
+}
 
 /**
  * Checks that the user exists and is enabled
  * @param  {Object} user
  * @return {Boolean}
  */
-const validateUser = user => user && user.enabled;
+const validateUser = user => user && user.enabled
 
 /**
  * Reset password and send email
@@ -77,32 +77,32 @@ const validateUser = user => user && user.enabled;
  * @param {String} request.query.mode - mode
  */
 const resetPassword = async (request, h) => {
-  const mode = request.query.mode || 'reset';
-  const sender = request.query.sender || null;
-  const { email, application } = request.params;
+  const mode = request.query.mode || 'reset'
+  const sender = request.query.sender || null
+  const { email, application } = request.params
 
   try {
     // Find user
-    const user = await repos.usersRepo.findByUsername(email, application);
+    const user = await repos.usersRepo.findByUsername(email, application)
     if (!validateUser(user)) {
-      throw new UserNotFoundError(`User not found for email ${email}`);
+      throw new UserNotFoundError(`User not found for email ${email}`)
     }
-    let resetGuid = user.reset_guid;
+    let resetGuid = user.reset_guid
 
     if (shouldUpdateUserResetGuid(user)) {
-      request.log('info', `user (${user.user_id}) needs a new reset guid`);
-      resetGuid = uuid();
-      await repos.usersRepo.updateResetGuid(user.user_id, resetGuid);
+      request.log('info', `user (${user.user_id}) needs a new reset guid`)
+      resetGuid = uuid()
+      await repos.usersRepo.updateResetGuid(user.user_id, resetGuid)
     }
 
-    await sendPasswordResetEmail(user, resetGuid, sender, mode);
+    await sendPasswordResetEmail(user, resetGuid, sender, mode)
 
-    return createResetPasswordResponse(user, resetGuid);
+    return createResetPasswordResponse(user, resetGuid)
   } catch (error) {
-    return errorHandler(request, h, error);
+    return errorHandler(request, h, error)
   }
-};
+}
 
 module.exports = {
   resetPassword
-};
+}

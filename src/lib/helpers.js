@@ -1,21 +1,21 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs')
 
-const util = require('util');
+const util = require('util')
 
 function createHash (string) {
   return new Promise((resolve, reject) => {
     bcrypt.genSalt(10, function (saltErr, salt) {
       if (saltErr) {
-        reject(saltErr);
+        reject(saltErr)
       }
       bcrypt.hash(string, salt, function (hashErr, hash) {
         if (hashErr) {
-          reject(hashErr);
+          reject(hashErr)
         }
-        resolve(hash);
-      });
-    });
-  });
+        resolve(hash)
+      })
+    })
+  })
 }
 
 /**
@@ -24,11 +24,11 @@ function createHash (string) {
  * @return {String} - the random code
  */
 const createDigitCode = (length = 6) => {
-  const addFactor = Math.pow(10, length - 1);
-  const multiplyBy = addFactor * 9;
+  const addFactor = Math.pow(10, length - 1)
+  const multiplyBy = addFactor * 9
 
-  return Math.floor(addFactor + Math.random() * multiplyBy);
-};
+  return Math.floor(addFactor + Math.random() * multiplyBy)
+}
 
 /**
  * Compares password with a hash
@@ -36,10 +36,10 @@ const createDigitCode = (length = 6) => {
  * @param {String} hash
  * @return {Promise<Boolean>} resolves with boolean true if password OK
  */
-const testPassword = util.promisify(bcrypt.compare);
+const testPassword = util.promisify(bcrypt.compare)
 
 module.exports = {
   createHash,
   createDigitCode,
   testPassword
-};
+}
