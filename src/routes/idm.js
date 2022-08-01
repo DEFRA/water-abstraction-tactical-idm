@@ -1,18 +1,18 @@
 /* API operations only - NO UI */
-const Joi = require('joi');
-const { version } = require('../../config');
-const { pool } = require('../lib/connectors/db');
+const Joi = require('joi')
+const { version } = require('../../config')
+const { pool } = require('../lib/connectors/db')
 const apiConfig = {
   pool,
   version
-};
+}
 
-const resetController = require('../controllers/reset');
-const usersRoutes = require('../controllers/user');
-const KpiApi = require('../controllers/kpi-reports.js')(apiConfig);
-const statusController = require('../controllers/status');
-const userRolesRoutes = require('./user-roles');
-const acceptanceTestsRoutes = require('../modules/acceptance-tests/routes');
+const resetController = require('../controllers/reset')
+const usersRoutes = require('../controllers/user')
+const KpiApi = require('../controllers/kpi-reports.js')(apiConfig)
+const statusController = require('../controllers/status')
+const userRolesRoutes = require('./user-roles')
+const acceptanceTestsRoutes = require('../modules/acceptance-tests/routes')
 
 module.exports = [
   {
@@ -55,4 +55,4 @@ module.exports = [
   ...userRolesRoutes,
   ...Object.values(acceptanceTestsRoutes),
   ...require('../modules/kpi-reporting/routes')
-];
+]

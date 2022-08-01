@@ -1,6 +1,6 @@
-const Joi = require('joi');
-const controller = require('./controller');
-const { version } = require('../../../config');
+const Joi = require('joi')
+const controller = require('./controller')
+const { version } = require('../../../config')
 
 module.exports = [
   {
@@ -18,4 +18,4 @@ module.exports = [
       }
     }
   }
-];
+]
