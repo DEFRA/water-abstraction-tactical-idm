@@ -15,7 +15,8 @@
     "migrate": "node scripts/create-schema && db-migrate up --verbose",
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
-    "lint": "standard"
+    "lint": "standard",
+    "version": "auto-changelog -p --commit-limit false && git add CHANGELOG.md"
   },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^7.0.0",
