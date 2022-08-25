@@ -6,13 +6,13 @@ const deleteAcceptanceTestData = async (request, h) => {
   await pool.query(`
     delete
     from idm.users
-    where user_data->>'source' = '${ACCEPTANCE_TEST_SOURCE}' 
+    where user_data->>'source' = '${ACCEPTANCE_TEST_SOURCE}'
     or user_name like '%@example.com';
   `)
 
   return h.response().code(204)
 }
 
-if (config.isAcceptanceTestTarget) {
+if (!config.isProduction) {
   exports.deleteAcceptanceTestData = deleteAcceptanceTestData
 }

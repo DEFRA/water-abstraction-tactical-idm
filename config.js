@@ -1,4 +1,7 @@
-const isAcceptanceTestTarget = ['local', 'dev', 'development', 'test', 'qa', 'preprod'].includes(process.env.NODE_ENV)
+'use strict'
+
+const environment = process.env.ENVIRONMENT
+const isProduction = environment === 'prd'
 
 module.exports = {
   version: '1.0',
@@ -50,7 +53,7 @@ module.exports = {
   //
   pg: {
     connectionString: process.env.DATABASE_URL,
-    max: process.env.NODE_ENV === 'local' ? 20 : 5,
+    max: 5,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 5000
   },
@@ -64,5 +67,5 @@ module.exports = {
     water_admin: process.env.ADMIN_BASE_URL || 'http://127.0.0.1:8008'
   },
 
-  isAcceptanceTestTarget
+  isProduction
 }
