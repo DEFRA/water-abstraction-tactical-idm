@@ -1,7 +1,7 @@
 const config = require('../../../config')
 const controller = require('./controller')
 
-if (config.isAcceptanceTestTarget) {
+if (!config.isProduction) {
   exports.acceptanceTestTearDown = {
     method: 'DELETE',
     path: `/idm/${config.version}/acceptance-tests`,
