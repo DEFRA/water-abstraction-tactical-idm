@@ -16,7 +16,7 @@
     "migrate:down": "db-migrate down --verbose",
     "migrate:create": "db-migrate create --sql-file --",
     "lint": "standard",
-    "changelog": "npx --yes auto-changelog -p --commit-limit false"
+    "version": "npx --yes auto-changelog -p --commit-limit false && git add CHANGELOG.md"
   },
   "dependencies": {
     "@envage/hapi-pg-rest-api": "^7.0.0",
