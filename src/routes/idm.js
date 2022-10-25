@@ -13,6 +13,7 @@ const KpiApi = require('../controllers/kpi-reports.js')(apiConfig)
 const statusController = require('../controllers/status')
 const userRolesRoutes = require('./user-roles')
 const acceptanceTestsRoutes = require('../modules/acceptance-tests/routes')
+const healthRoutes = require('../modules/health/routes')
 
 module.exports = [
   {
@@ -54,5 +55,6 @@ module.exports = [
   ...require('../modules/authenticate/routes'),
   ...userRolesRoutes,
   ...Object.values(acceptanceTestsRoutes),
-  ...require('../modules/kpi-reporting/routes')
+  ...require('../modules/kpi-reporting/routes'),
+  ...Object.values(healthRoutes)
 ]
