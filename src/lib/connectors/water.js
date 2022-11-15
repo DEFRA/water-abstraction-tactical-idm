@@ -16,7 +16,7 @@ const sendNotifyMessage = async (messageRef, recipient, personalisation = {}) =>
     const response = await helpers.serviceRequest.post(uri, options)
     return response
   } catch (err) {
-    logger.error('Error sending notify message', err)
+    logger.error('Error sending notify message', err.stack)
     throw err
   }
 }

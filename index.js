@@ -82,7 +82,7 @@ const init = async () => {
 }
 
 const processError = message => err => {
-  logger.error(message, err)
+  logger.error(message, err.stack)
   process.exit(1)
 }
 
