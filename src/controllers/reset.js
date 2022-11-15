@@ -53,7 +53,7 @@ const errorHandler = (request, h, error) => {
     return h.response({ data: null, error }).code(404)
   }
 
-  logger.error('resetPassword error', error)
+  logger.error('resetPassword error', error.stack)
   return h.response({ data: null, error }).code(500)
 }
 
