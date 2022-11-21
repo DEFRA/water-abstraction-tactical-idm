@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom')
 const { v4: uuid } = require('uuid')
-const { get } = require('lodash')
 
 const repos = require('../../lib/repos')
 const helpers = require('../../lib/helpers')
@@ -15,7 +14,8 @@ const Notify = require('../../lib/connectors/notify')
  * @return {[type]}     [description]
  */
 const errorHandler = (err, h) => {
-  const statusCode = get(err, 'output.statusCode', 500)
+  const statusCode = err.output?.statusCode ? err.output.statusCode : 500
+
   if (statusCode < 500) {
     logger.info(err.message)
     return h.response({
@@ -35,9 +35,11 @@ const errorHandler = (err, h) => {
  * @return {<Promise>}          resolves when message sent
  */
 const sendPasswordLockEmail = (user, resetGuid) => {
+  const firstname = user.user_data?.firstname ? user.user_data.firstname : 'User'
+
   return Notify.sendPasswordLockEmail({
     email: user.user_name,
-    firstname: get(user, 'user_data.firstname', 'User'),
+    firstname,
     resetGuid,
     userApplication: user.application
   })
