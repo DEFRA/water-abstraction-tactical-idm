@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom')
 const { v4: uuid } = require('uuid')
-const { get, omit } = require('lodash')
+const { get } = require('lodash')
 
 const repos = require('../../lib/repos')
 const helpers = require('../../lib/helpers')
@@ -49,8 +49,9 @@ const sendPasswordLockEmail = (user, resetGuid) => {
  * @return {[type]}      [description]
  */
 const mapUserResponse = user => {
+  delete user.password
   return {
-    ...omit(user, 'password'),
+    ...user,
     err: null
   }
 }
