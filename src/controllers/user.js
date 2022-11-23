@@ -1,6 +1,5 @@
 const HAPIRestAPI = require('@envage/hapi-pg-rest-api')
 const Joi = require('joi')
-const { omit } = require('lodash')
 
 const { createHash } = require('../lib/helpers')
 
@@ -68,7 +67,8 @@ restApi.routes.findOneRoute.handler = async (request, h) => {
   const user = await usersRepo.findUserWithRoles(id)
 
   if (user) {
-    return { error: null, data: omit(user, 'password') }
+    delete user.password
+    return { error: null, data: user }
   }
 
   return h.response({

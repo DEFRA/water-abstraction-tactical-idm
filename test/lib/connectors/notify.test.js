@@ -37,7 +37,7 @@ experiment('notify connectors', () => {
           recipient: params.email,
           personalisation: {
             firstname: params.firstName,
-            reset_url: `http://127.0.0.1:8000/reset_password_change_password?resetGuid=${params.resetGuid}`
+            reset_url: `${config.application.water_vml}/reset_password_change_password?resetGuid=${params.resetGuid}`
           }
         }
       })
@@ -71,7 +71,7 @@ experiment('notify connectors', () => {
           recipient: params.email,
           personalisation: {
             firstname: params.firstName,
-            reset_url: `http://127.0.0.1:8000/reset_password_change_password?resetGuid=${params.resetGuid}`
+            reset_url: `${config.application.water_vml}/reset_password_change_password?resetGuid=${params.resetGuid}`
           }
         }
       })

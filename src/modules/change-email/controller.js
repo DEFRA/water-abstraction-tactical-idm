@@ -1,13 +1,20 @@
 const repos = require('../../lib/repos')
 const Boom = require('@hapi/boom')
-const { get } = require('lodash')
 
-const isRateLimitExceeded = row =>
-  get(row, 'attempts') >= 3 || get(row, 'security_code_attempts') >= 3
+const isRateLimitExceeded = (row) => {
+  if (row.attempts >= 3 || row.security_code_attempts >= 3) {
+    return true
+  }
+  return false
+}
 
-const isVerified = row =>
-  get(row, 'date_verified', null) !== null
-
+const isVerified = (row) => {
+  const dateVerified = row.date_verified
+  if (dateVerified) {
+    return true
+  }
+  return false
+}
 const isLocked = row => isRateLimitExceeded(row) || isVerified(row)
 
 /**

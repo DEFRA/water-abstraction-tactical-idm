@@ -10,7 +10,6 @@
 'use strict'
 const { v4: uuid } = require('uuid')
 const { experiment, test, beforeEach, after } = exports.lab = require('@hapi/lab').script()
-const { get } = require('lodash')
 const { expect } = require('@hapi/code')
 const server = require('../index')
 const { deleteTestUsers } = require('./test-helpers')
@@ -47,7 +46,7 @@ const createTestUser = async (userName = testEmailOne, application = 'water_vml'
 
   // Store generated user ID
   const data = JSON.parse(response.payload)
-  const userId = get(data, 'data.user_id')
+  const userId = data.data?.user_id
   if (userId) {
     testUserIds.push(userId)
   }
