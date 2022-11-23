@@ -1,6 +1,5 @@
 const repos = require('../lib/repos')
 const moment = require('moment')
-const { get, pick } = require('lodash')
 const { v4: uuid } = require('uuid')
 const notify = require('../lib/connectors/notify')
 const { logger } = require('../logger')
@@ -29,9 +28,11 @@ const shouldUpdateUserResetGuid = user => {
 }
 
 const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
+  const firstName = user.user_data?.firstName ? user.user_data.firstName : '(User)'
+
   const { err } = await notify.sendPasswordResetEmail({
     email: user.user_name,
-    firstName: get(user, 'user_data.firstName', '(User)'),
+    firstName,
     resetGuid,
     sender,
     userApplication: user.application
@@ -44,7 +45,7 @@ const sendPasswordResetEmail = async (user, resetGuid, sender, mode) => {
 
 const createResetPasswordResponse = (user, resetGuid) => ({
   error: null,
-  data: Object.assign({ reset_guid: resetGuid }, pick(user, 'user_name', 'user_id'))
+  data: { reset_guid: resetGuid, user_name: user.user_name, user_id: user.user_id }
 })
 
 const errorHandler = (request, h, error) => {
