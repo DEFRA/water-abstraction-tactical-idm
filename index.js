@@ -2,19 +2,14 @@
 
 require('dotenv').config()
 
-const GoodWinston = require('good-winston')
+const Blipp = require('blipp')
 const Hapi = require('@hapi/hapi')
-
-const serverPlugins = {
-  blipp: require('blipp'),
-  hapiAuthJwt2: require('hapi-auth-jwt2'),
-  good: require('@hapi/good')
-}
+const HapiAuthJwt2 = require('hapi-auth-jwt2')
 
 const config = require('./config')
 const db = require('./src/lib/connectors/db')
+const HapiPinoPlugin = require('./src/plugins/hapi-pino.plugin.js')
 const { logger } = require('./src/logger')
-const goodWinstonStream = new GoodWinston({ winston: logger })
 
 const server = new Hapi.Server(config.server)
 
@@ -32,25 +27,6 @@ const validateJWT = (decoded, request, h) => {
   return { isValid }
 }
 
-const initGood = async () => {
-  await server.register({
-    plugin: serverPlugins.good,
-    options: {
-      ...config.good,
-      reporters: {
-        winston: [goodWinstonStream]
-      }
-    }
-  })
-}
-
-const initBlipp = async () => {
-  await server.register({
-    plugin: serverPlugins.blipp,
-    options: config.blipp
-  })
-}
-
 const configureJwtStrategy = () => {
   server.auth.strategy('jwt', 'jwt', {
     key: process.env.JWT_SECRET, // Never Share your secret key
@@ -63,10 +39,15 @@ const configureJwtStrategy = () => {
 }
 
 const init = async () => {
-  initGood()
-  initBlipp()
+  await server.register(HapiPinoPlugin())
 
-  await server.register({ plugin: serverPlugins.hapiAuthJwt2 })
+  await server.register({
+    plugin: Blipp,
+    options: config.blipp
+  })
+
+  // JWT token auth
+  await server.register(HapiAuthJwt2)
 
   configureJwtStrategy()
 
