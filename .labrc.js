@@ -12,5 +12,12 @@ module.exports = {
   reporter: ['console', 'html', 'lcov'],
   output: ['stdout', 'coverage/coverage.html', 'coverage/lcov.info'],
   // This version global seems to be introduced by sinon.
-  globals: ['version', 'fetch', 'Response', 'Headers', 'Request'].join(',')
+  globals: [
+    'version',
+    'fetch',
+    'Response',
+    'Headers',
+    'Request',
+    'Symbol(undici.globalDispatcher.1)'
+  ].join(',')
 };
