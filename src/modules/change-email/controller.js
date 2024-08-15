@@ -46,6 +46,7 @@ const getStatus = async (request, h) => {
       data: {
         userId,
         email: data.new_email_address,
+        securityCode: data.security_code,
         isLocked: isLocked(data)
       },
       error: null
