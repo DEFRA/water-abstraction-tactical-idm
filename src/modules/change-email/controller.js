@@ -46,6 +46,7 @@ const getStatus = async (request, h) => {
       data: {
         userId,
         email: data.new_email_address,
+        securityCode: data.security_code,
         isLocked: isLocked(data)
       },
       error: null
@@ -76,7 +77,9 @@ const postStartEmailChange = async (request, h) => {
     // Rate limit requests
     const existing = await repos.changeEmailRepo.findOneByUserId(userId)
 
-    validateEmailChange(userId, existing)
+    if (existing) {
+      validateEmailChange(userId, existing)
+    }
 
     // Upsert email change record
     const data = await repos.changeEmailRepo.create(userId, email)
