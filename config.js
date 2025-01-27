@@ -31,10 +31,6 @@ module.exports = {
     port: 8003
   },
 
-  blipp: {
-    showAuth: true
-  },
-
   // Database has 198 available connections
   //
   // Outside of development each process runs on 2 instances on 2 cores.
