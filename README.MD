@@ -1,6 +1,6 @@
 # Water Abstraction Tactical IDM
 
-![Build Status](https://github.com/DEFRA/water-abstraction-tactical-idm/workflows/CI/badge.svg?branch=main)
+![Build Status](https://github.com/DEFRA/water-abstraction-tactical-idm/actions/workflows/ci.yml/badge.svg?branch=main)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_water-abstraction-tactical-idm&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=DEFRA_water-abstraction-tactical-idm)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_water-abstraction-tactical-idm&metric=coverage)](https://sonarcloud.io/dashboard?id=DEFRA_water-abstraction-tactical-idm)
 [![Known Vulnerabilities](https://snyk.io/test/github/DEFRA/water-abstraction-tactical-idm/badge.svg)](https://snyk.io/test/github/DEFRA/water-abstraction-tactical-idm)
@@ -8,11 +8,11 @@
 
 This component is one of 3 that combine to give you the ability to store a document or details of a permit or pass, to link those documents to users that can view and be able to have different access for internal and external users. With a front end it will enable most processes to capture, share and view details of permits and or licence style information
 
-__Permit Repository:__ https://github.com/DEFRA/water-abstraction-permit-repository
+**Permit Repository:** https://github.com/DEFRA/water-abstraction-permit-repository
 
-__IDM:__ https://github.com/DEFRA/water-abstraction-tactical-idm
+**IDM:** https://github.com/DEFRA/water-abstraction-tactical-idm
 
-__CRM:__ https://github.com/DEFRA/water-abstraction-tactical-crm
+**CRM:** https://github.com/DEFRA/water-abstraction-tactical-crm
 
 The water-abstraction-tactical-idm is a lightweight identity management solution providing simple user account creation and authentication features.
 
@@ -20,13 +20,13 @@ The IDM is a simple standalone solution - It does not aim to provide roles, perm
 
 Features include:
 
-* User account creation with email/password
-* Password reset
-* Authentication
-* Admin user accounts
-* Auto locking of user accounts following excessive login attempts
+- User account creation with email/password
+- Password reset
+- Authentication
+- Admin user accounts
+- Auto locking of user accounts following excessive login attempts
 
-The IDM is developed in HAPI/NodeJS and backed by a Postgres SQL database.  All data is transferred via a REST API with JWT authentication.
+The IDM is developed in HAPI/NodeJS and backed by a Postgres SQL database. All data is transferred via a REST API with JWT authentication.
 
 The REST API supports basic filtering and pagination operations on the users endpoint.
 
