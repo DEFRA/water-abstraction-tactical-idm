@@ -28,20 +28,27 @@
 
 BEGIN TRANSACTION;
 
--- 1. This user was seeded as a member of the wirs group, but also with a user role of 'ar_approver'. In the current
--- service there is no mapping to a permission for a user with this type of setup, so both the legacy and current
--- system fail to handle it. The simplest fix is to delete the user role. The user will then be mapped as having
--- 'Waste and Industry Regulatory Service' permissions by the service.
+-- 1. When some users were seeded as members of groups other than 'nps', but also with a user role of 'ar_approver'.
+-- In the current service there is no mapping to a permission for a user with this type of setup, so both the legacy and
+-- current system fail to handle it. The simplest fix is to delete the user roles. These users will then be mapped as
+-- having their respective group's permissions by the service.
 DELETE FROM idm.user_roles ur
 WHERE
   ur.user_id IN (
-    SELECT
+    SELECT DISTINCT
       u.user_id
-    FROM
-      idm.users u
+    FROM  idm.user_roles ur
+    INNER JOIN idm.users u
+      ON u.user_id = ur.user_id
+    INNER JOIN idm.roles r
+      ON r.role_id = ur.role_id
+    INNER JOIN idm.user_groups ug
+      ON ug.user_id = u.user_id
+    INNER JOIN idm."groups" g
+      ON g.group_id = ug.group_id
     WHERE
-      u.user_name = 'amrute.bendre@defra.gsi.gov.uk'
-  );
+      g."group" <> 'nps'
+);
 
 -- 2. These users were seeded with an application of 'water_dev', which is not a valid type in either the legacy or
 -- current system. Because some of these seeded users also have 'water_admin' records, we cannot update the type to that
