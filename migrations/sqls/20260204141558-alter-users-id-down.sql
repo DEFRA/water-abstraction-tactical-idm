@@ -1,0 +1,5 @@
+ALTER TABLE idm.users
+  DROP CONSTRAINT IF EXISTS unique_users_id;
+
+ALTER TABLE idm.users
+  DROP COLUMN IF EXISTS id;
