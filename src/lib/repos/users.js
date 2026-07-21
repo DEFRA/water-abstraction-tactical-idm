@@ -5,6 +5,121 @@ const { getNow } = require('./date-helpers')
 const mapRole = row => row.role
 const mapGroup = row => row.group
 
+// Copied from the new code, but with added scopes for this spike
+const userPermissions = Object.freeze({
+  admin: {
+    application: 'water_vml',
+    groups: [],
+    key: 'admin',
+    label: 'Admin',
+    roles: ['admin']
+  },
+  basic: {
+    application: 'both',
+    groups: [],
+    key: 'basic',
+    label: 'Basic access',
+    roles: [],
+    scopes: []
+  },
+  billing_and_data: {
+    application: 'water_admin',
+    groups: ['billing_and_data'],
+    key: 'billing_and_data',
+    label: 'Billing and Data',
+    roles: []
+  },
+  environment_officer: {
+    application: 'water_admin',
+    groups: ['environment_officer'],
+    key: 'environment_officer',
+    label: 'Environment Officer',
+    roles: []
+  },
+  none: {
+    application: 'water_vml',
+    groups: [],
+    key: 'none',
+    label: 'None',
+    roles: []
+  },
+  nps: {
+    application: 'water_admin',
+    groups: ['nps'],
+    key: 'nps',
+    label: 'National Permitting Service',
+    roles: []
+  },
+  nps_ar_approver: {
+    application: 'water_admin',
+    groups: ['nps'],
+    key: 'nps_ar_approver',
+    label: 'National Permitting Service and Digitise! approver',
+    roles: ['ar_approver'],
+    scopes: ['ar_approver', 'unlink_licences', 'renewal_notifications', 'manage_gauging_station_licence_links', 'view_charge_versions']
+  },
+  nps_ar_user: {
+    application: 'water_admin',
+    groups: ['nps'],
+    key: 'nps_ar_user',
+    label: 'National Permitting Service and Digitise! editor',
+    roles: ['ar_user']
+  },
+  primary_user: {
+    application: 'water_vml',
+    groups: [],
+    key: 'primary_user',
+    label: 'Primary user',
+    roles: ['primary_user']
+  },
+  psc: {
+    application: 'water_admin',
+    groups: ['psc'],
+    key: 'psc',
+    label: 'Permitting and Support Centre',
+    roles: []
+  },
+  returns_user: {
+    application: 'water_vml',
+    groups: [],
+    key: 'returns_user',
+    label: 'Returns user',
+    roles: ['user_returns']
+  },
+  super: {
+    application: 'water_admin',
+    groups: ['super'],
+    key: 'super',
+    label: 'Super user',
+    roles: [],
+    scopes: [
+      'returns',
+      'hof_notifications',
+      'bulk_return_notifications',
+      'manage_accounts',
+      'unlink_licences',
+      'renewal_notifications',
+      'ar_user',
+      'ar_approver',
+      'billing',
+      'charge_version_workflow_editor',
+      'charge_version_workflow_reviewer',
+      'manage_agreements',
+      'delete_agreements',
+      'manage_billing_accounts',
+      'manage_gauging_station_licence_links',
+      'view_charge_versions'
+    ]
+  },
+  wirs: {
+    application: 'water_admin',
+    groups: ['wirs'],
+    key: 'wirs',
+    label: 'Waste and Industry Regulatory Service',
+    roles: []
+  }
+})
+
 /**
  * Repository for idm.users table
  * @extends Repository
@@ -160,8 +275,17 @@ class UsersRepository extends Repository {
     ])
 
     if (user) {
-      user.roles = roles
-      user.groups = groups
+      // If the new permissions field is populated and the scopes are defined, use that to determine the user's scopes
+      // (a.k.a. roles), otherwise fall back to the old way of doing things
+      const permissions = userPermissions[user.permissions]
+
+      if (permissions?.scopes) {
+        user.roles = permissions.scopes
+        user.groups = permissions.groups
+      } else {
+        user.roles = roles
+        user.groups = groups
+      }
     }
 
     return user
@@ -254,7 +378,7 @@ class UsersRepository extends Repository {
    */
   async findRegistrationsByMonth () {
     const query = `
-    SELECT 
+    SELECT
     date_part('month', date_created)::integer AS month,
     SUM(CASE WHEN application = 'water_admin' THEN 1 ELSE 0 END)::integer AS internal,
     SUM(CASE WHEN application = 'water_vml' THEN 1 ELSE 0 END)::integer AS external,
@@ -262,8 +386,8 @@ class UsersRepository extends Repository {
     FROM idm.users
     WHERE
     application IN ('water_vml', 'water_admin') AND
-    last_login IS NOT NULL 
-    AND date_created IS NOT NULL 
+    last_login IS NOT NULL
+    AND date_created IS NOT NULL
     GROUP BY month, current_year
     ORDER BY current_year asc, month desc;`
     const { rows } = await this.dbQuery(query)
